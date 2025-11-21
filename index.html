@@ -565,7 +565,7 @@
         }
 
         #camera-video {
-            transform: scaleX(-1);
+            /* Transform removido - sin efecto espejo */
         }
 
         /* ===== PROGRESS INDICATOR ===== */
@@ -1498,9 +1498,8 @@
         canvas.height = camVideo.videoHeight;
         const ctx = canvas.getContext('2d');
         
-        // Capturar imagen del video
-        ctx.scale(-1, 1); // Deshacer el flip
-        ctx.drawImage(camVideo, -canvas.width, 0, canvas.width, canvas.height);
+        // Capturar imagen normal - sin corrección de espejo
+        ctx.drawImage(camVideo, 0, 0, canvas.width, canvas.height);
         
         const dataUrl = canvas.toDataURL('image/png');
         

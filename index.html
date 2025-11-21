@@ -2,17 +2,16 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <title>TEXCORP Telares Pro</title>
     
     <!-- PWA Meta Tags -->
     <meta name="application-name" content="TEXCORP Telares">
     <meta name="description" content="Sistema OCR para lectura de telares industriales TEXCORP">
-    <meta name="theme-color" content="#1e3a8a">
-    <meta name="background-color" content="#f8fafc">
     <meta name="mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="TEXCORP Telares">
     <meta name="format-detection" content="telephone=no">
     
@@ -51,14 +50,25 @@
             margin: 0; 
             padding: 0; 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
         
-        body { 
+        html, body { 
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
             color: var(--text-main); 
-            min-height: 100vh; 
-            display: flex; 
+            position: fixed;
+            touch-action: manipulation;
+        }
+
+        #app-shell {
+            width: 100%;
+            height: 100%;
+            display: flex;
             flex-direction: column;
+            overflow: hidden;
         }
 
         /* ===== HEADER ===== */
@@ -177,12 +187,14 @@
             color: white;
         }
 
-        /* ===== PLANT GRID LAYOUT (PRESERVADO) ===== */
+        /* ===== PLANT GRID LAYOUT (APP-STYLE) ===== */
         .plant-scroll-area {
             flex: 1;
-            overflow: auto;
+            overflow-y: auto;
+            overflow-x: hidden;
             padding: 24px;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            -webkit-overflow-scrolling: touch;
         }
 
         .plant-grid {
@@ -190,6 +202,10 @@
             gap: 16px;
             min-width: 1800px;
             align-items: flex-start;
+            overflow-x: auto;
+            overflow-y: visible;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
         }
 
         .plant-column {
@@ -547,7 +563,7 @@
             100% { transform: rotate(360deg); }
         }
 
-        /* ===== RESPONSIVE ===== */
+        /* ===== RESPONSIVE & TOUCH OPTIMIZATIONS ===== */
         @media (max-width: 768px) {
             .form-grid {
                 grid-template-columns: 1fr;
@@ -569,6 +585,49 @@
             .plant-column {
                 min-width: 150px;
             }
+        }
+
+        /* ===== TOUCH OPTIMIZATIONS ===== */
+        .btn {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .telar-card {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        .telar-card:active {
+            transform: translateY(-2px) scale(0.98);
+        }
+
+        button, input, select {
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+
+        /* ===== PWA INSTALL BUTTON ===== */
+        #pwa-install-btn {
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            z-index: 9999 !important;
+            border-radius: 25px !important;
+            padding: 12px 20px !important;
+            box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4) !important;
+            font-size: 0.9rem !important;
+            backdrop-filter: blur(10px) !important;
+            animation: pulse 2s infinite !important;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
         }
 
         /* ===== VIDEO STYLES ===== */
@@ -633,6 +692,8 @@
     </style>
 </head>
 <body>
+    <div id="app-shell">
+        <div class="app-container">
 
     <header>
         <div>
@@ -830,6 +891,9 @@
 
     <!-- ===== HIDDEN PROCESSING CANVAS ===== -->
     <canvas id="processing-canvas"></canvas>
+
+        </div>
+    </div>
 
 <script>
     // ===== ESTADO DE LA APLICACIÓN =====

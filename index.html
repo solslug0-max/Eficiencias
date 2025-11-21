@@ -3,252 +3,625 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telares TEXCORP - OCR Industrial</title>
+    <title>Lectura de Telares - TEXCORP Pro</title>
     
-    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+    <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
     
     <style>
         :root {
-            --primary-color: #0f4c75;
-            --secondary-color: #3282b8;
-            --bg-color: #f4f6f8;
+            --primary-color: #1e3a8a;
+            --secondary-color: #3b82f6;
+            --accent-color: #06b6d4;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --error-color: #ef4444;
+            --bg-color: #f8fafc;
             --card-bg: #ffffff;
-            --text-main: #1b262c;
+            --text-main: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
             --border-radius: 8px;
-            --status-working-bg: #28a745; 
-            --status-working-text: #ffffff;
-            --status-stopped-bg: #ffc107; 
-            --status-stopped-text: #000000;
-            --card-height: 140px; 
-            --ocr-accent: #e74c3c;
+            --card-height: 160px;
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
-        body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
+        * { 
+            box-sizing: border-box; 
+            margin: 0; 
+            padding: 0; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        
+        body { 
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%); 
+            color: var(--text-main); 
+            min-height: 100vh; 
+            display: flex; 
+            flex-direction: column;
+        }
 
+        /* ===== HEADER ===== */
         header {
             background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
-            color: white; padding: 12px 20px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
+            color: white; 
+            padding: 16px 24px;
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(10px);
         }
 
+        header h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+        }
+
+        header small {
+            opacity: 0.9;
+            font-size: 0.875rem;
+            display: block;
+            margin-top: 2px;
+        }
+
+        #current-time {
+            font-size: 1.125rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 8px 16px;
+            border-radius: var(--border-radius);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        /* ===== CONTROLS BAR ===== */
         .controls-bar {
-            background: white; padding: 15px 20px; display: flex; gap: 15px;
-            align-items: flex-end; border-bottom: 1px solid #ddd; flex-wrap: wrap;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            background: var(--card-bg);
+            padding: 20px 24px;
+            display: flex;
+            gap: 20px;
+            align-items: flex-end;
+            border-bottom: 2px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
         }
-        .control-group { display: flex; flex-direction: column; }
-        .control-group label { font-size: 0.75rem; color: #666; margin-bottom: 4px; font-weight: bold; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
-        
-        .btn { 
-            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; 
-            font-weight: bold; font-size: 0.9rem; color: white; transition: all 0.2s;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .btn-green { background: linear-gradient(135deg, #28a745, #20b039); }
-        .btn-green:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(40,167,69,0.3); }
-        .btn-blue { background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); }
-        .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(50,130,184,0.3); }
-        .btn-cancel { background: #6c757d; color: white; }
 
-        .plant-scroll-area { flex: 1; overflow: auto; padding: 20px; }
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        input, select {
+            padding: 10px 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+            background: var(--card-bg);
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--secondary-color);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.875rem;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow-sm);
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-green {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+        }
+
+        .btn-blue {
+            background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+            color: white;
+        }
+
+        .btn-red {
+            background: linear-gradient(135deg, var(--error-color), #dc2626);
+            color: white;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #64748b, #475569);
+            color: white;
+        }
+
+        /* ===== PLANT GRID LAYOUT (PRESERVADO) ===== */
+        .plant-scroll-area {
+            flex: 1;
+            overflow: auto;
+            padding: 24px;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+        }
+
         .plant-grid {
-            display: flex; gap: 12px; min-width: 1600px; align-items: flex-start;
-        }
-        .plant-column {
-            flex: 1; display: flex; flex-direction: column; gap: 12px; min-width: 160px;
+            display: flex;
+            gap: 16px;
+            min-width: 1800px;
+            align-items: flex-start;
         }
 
+        .plant-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            min-width: 180px;
+        }
+
+        /* ===== TELAR CARDS (MODERNIZADAS) ===== */
         .telar-card, .empty-card-space {
-            height: var(--card-height); border-radius: var(--border-radius);
+            height: var(--card-height);
+            border-radius: 12px;
         }
+
         .empty-card-space {
-            background: transparent; border: 2px dashed rgba(0,0,0,0.05); pointer-events: none;
+            background: transparent;
+            border: 2px dashed rgba(148, 163, 184, 0.3);
+            pointer-events: none;
         }
+
         .telar-card {
-            background: var(--card-bg); border: 2px solid #e0e0e0; overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; 
+            background: var(--card-bg);
+            border: 2px solid var(--border-color);
+            overflow: hidden;
+            box-shadow: var(--shadow-md);
+            cursor: pointer;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; flex-direction: column;
+            display: flex;
+            flex-direction: column;
+            position: relative;
         }
-        .telar-card:hover { 
-            transform: translateY(-4px) scale(1.02); 
-            box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+
+        .telar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .telar-card:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: var(--shadow-lg);
             border-color: var(--secondary-color);
         }
 
-        .card-top { 
-            padding: 10px 12px; display: flex; justify-content: space-between; 
-            font-weight: bold; font-size: 0.85rem; background: rgba(15,76,117,0.05);
-        }
-        .card-status-bar { 
-            text-align: center; padding: 6px 0; font-size: 0.7rem; 
-            font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-        .status-working { background: linear-gradient(135deg, var(--status-working-bg), #20b039); color: var(--status-working-text); }
-        .status-paused { background: linear-gradient(135deg, var(--status-stopped-bg), #e0a800); color: var(--status-stopped-text); }
-        .status-pending { background: linear-gradient(135deg, #e9ecef, #dee2e6); color: #495057; }
-
-        .card-body { 
-            padding: 10px 12px; flex: 1; font-size: 0.8rem; color: #555; 
-            display: flex; flex-direction: column; justify-content: center; 
-        }
-        .card-body strong { display: block; color: #000; font-size: 0.9rem; margin-bottom: 4px; }
-        .card-footer { 
-            padding: 8px 12px; font-size: 0.7rem; color: #888; 
-            border-top: 1px solid #f0f0f0; background: rgba(248,249,250,0.8);
+        .telar-card:hover::before {
+            opacity: 1;
         }
 
+        .card-top {
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 700;
+            font-size: 0.875rem;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .card-status-bar {
+            text-align: center;
+            padding: 8px 0;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .status-working {
+            background: linear-gradient(135deg, var(--success-color), #059669);
+            color: white;
+        }
+
+        .status-paused {
+            background: linear-gradient(135deg, var(--warning-color), #d97706);
+            color: white;
+        }
+
+        .status-pending {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            color: var(--text-secondary);
+        }
+
+        .card-body {
+            padding: 12px 16px;
+            flex: 1;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        .card-body strong {
+            display: block;
+            color: var(--text-main);
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .card-footer {
+            padding: 8px 16px;
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--border-color);
+            background: #f8fafc;
+        }
+
+        /* ===== MODALES MODERNOS ===== */
         .modal-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.7); z-index: 1000; display: none;
-            justify-content: center; align-items: center;
-            backdrop-filter: blur(3px);
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            display: none;
+            justify-content: center;
+            align-items: center;
         }
+
         .modal-content {
-            background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 700px;
-            max-height: 90vh; overflow-y: auto; position: relative;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            background: var(--card-bg);
+            padding: 32px;
+            border-radius: 16px;
+            width: 95%;
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
-        .full-width { grid-column: span 2; }
-        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
-        
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        textarea {
+            width: 100%;
+            height: 80px;
+            padding: 12px;
+            border: 2px solid var(--border-color);
+            border-radius: var(--border-radius);
+            resize: vertical;
+            font-family: inherit;
+        }
+
+        /* ===== OCR PANEL MODERNO ===== */
         .ocr-panel {
-            background: linear-gradient(135deg, var(--ocr-accent), #c0392b);
-            color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;
-            box-shadow: 0 4px 15px rgba(231,76,60,0.3);
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: white;
+            padding: 24px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            position: relative;
+            overflow: hidden;
         }
+
+        .ocr-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            opacity: 0.1;
+        }
+
+        .ocr-panel-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+            position: relative;
+            z-index: 1;
+        }
+
         .ocr-panel h4 {
-            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
-            font-size: 1.1rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0;
         }
-        .ocr-panel p {
-            font-size: 0.85rem; opacity: 0.9; margin-bottom: 15px; line-height: 1.4;
+
+        .tech-badge {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border: 1px solid rgba(59, 130, 246, 0.3);
         }
-        
-        .image-processing-area {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;
+
+        .ocr-controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
+            position: relative;
+            z-index: 1;
         }
-        .preview-box {
-            border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; 
-            padding: 10px; min-height: 160px; display: flex; 
-            flex-direction: column; justify-content: center; align-items: center;
-            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+
+        .capture-section {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
-        .preview-box img { 
-            max-width: 100%; max-height: 140px; border-radius: 6px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-        }
-        .preview-label {
-            font-size: 0.75rem; font-weight: bold; margin-bottom: 8px;
-            text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;
-        }
-        
-        .capture-buttons {
-            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;
-        }
+
         .btn-capture {
-            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3);
-            color: white; padding: 10px 16px; border-radius: 8px; cursor: pointer;
-            font-size: 0.85rem; font-weight: bold; transition: all 0.3s;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
             backdrop-filter: blur(10px);
         }
+
         .btn-capture:hover {
-            background: rgba(255,255,255,0.3); 
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.4);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(255,255,255,0.2);
         }
+
         .btn-capture:disabled {
-            opacity: 0.6; pointer-events: none; transform: none;
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
         }
-        
-        .processing-status {
-            display: none; background: rgba(255,255,255,0.95); color: #333;
-            border-radius: 8px; padding: 15px; margin: 15px 0; text-align: center;
-            border: 2px solid rgba(231,76,60,0.3);
+
+        /* ===== IMAGE PREVIEW ===== */
+        .preview-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin: 16px 0;
         }
-        
-        .ocr-console {
-            background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace;
-            font-size: 0.75rem; padding: 12px; border-radius: 8px; margin: 15px 0;
-            height: 120px; overflow-y: auto; border: 2px solid rgba(255,255,255,0.1);
-        }
-        
-        .results-grid {
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
-            gap: 12px; margin: 15px 0;
-        }
-        .result-badge {
-            background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px;
-            text-align: center; border: 2px solid rgba(255,255,255,0.2);
+
+        .preview-box {
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            text-align: center;
+            background: rgba(255, 255, 255, 0.05);
             backdrop-filter: blur(10px);
         }
-        .result-badge .value {
-            font-size: 1.4rem; font-weight: bold; margin-bottom: 4px;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+
+        .preview-box img {
+            max-width: 100%;
+            max-height: 150px;
+            border-radius: 6px;
+            box-shadow: var(--shadow-md);
         }
-        .result-badge .label {
-            font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;
+
+        .preview-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            opacity: 0.8;
         }
-        
-        .validation-alerts {
-            margin: 10px 0; display: none;
+
+        /* ===== OCR RESULTS ===== */
+        .ocr-results {
+            background: rgba(16, 185, 129, 0.1);
+            border: 2px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--border-radius);
+            padding: 16px;
+            margin: 16px 0;
+            display: none;
         }
-        .alert {
-            padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 5px;
-            display: flex; align-items: center; gap: 8px;
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
         }
-        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
-        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
-        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
-        
-        .manual-input-section {
-            background: #fff8e1; border: 2px solid #ffcc02; border-radius: 8px;
-            padding: 15px; margin: 15px 0; display: none;
+
+        .result-item {
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: var(--border-radius);
         }
-        
-        .progress-ring {
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
-            border-top: 3px solid white; border-radius: 50%;
-            animation: spin 1s linear infinite; margin: 0 auto 10px;
+
+        .result-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #10b981;
         }
-        
+
+        .result-label {
+            font-size: 0.75rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* ===== PROCESSING INDICATOR ===== */
+        .processing-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            border-radius: 12px;
+            z-index: 10;
+        }
+
+        .processing-content {
+            text-align: center;
+            color: white;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 12px;
+        }
+
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        
-        .industrial-badge {
-            background: linear-gradient(135deg, var(--ocr-accent), #c0392b);
-            color: white; font-weight: bold; font-size: 0.75rem; 
-            padding: 4px 10px; border-radius: 12px; display: inline-block;
-            text-transform: uppercase; letter-spacing: 0.5px;
-            box-shadow: 0 2px 6px rgba(231,76,60,0.4);
-        }
-        
+
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .image-processing-area { grid-template-columns: 1fr; }
-            .capture-buttons { justify-content: center; }
-            .btn-capture { flex: 1; min-width: 120px; text-align: center; }
-            .results-grid { grid-template-columns: 1fr 1fr; }
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .ocr-controls {
+                grid-template-columns: 1fr;
+            }
+            
+            .preview-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .plant-grid {
+                min-width: auto;
+                flex-wrap: wrap;
+            }
+            
+            .plant-column {
+                min-width: 150px;
+            }
         }
-        
-        canvas { display: none; }
+
+        /* ===== VIDEO STYLES ===== */
+        video {
+            width: 100%;
+            max-width: 400px;
+            height: 300px;
+            border-radius: 12px;
+            object-fit: cover;
+            background: #000;
+            box-shadow: var(--shadow-lg);
+        }
+
+        #camera-video {
+            transform: scaleX(-1);
+        }
+
+        /* ===== PROGRESS INDICATOR ===== */
+        #progress-text {
+            background: linear-gradient(135deg, var(--accent-color), var(--secondary-color));
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        /* ===== VALIDATION ALERTS ===== */
+        .alert {
+            padding: 12px 16px;
+            border-radius: var(--border-radius);
+            margin: 12px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            color: #059669;
+        }
+
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+            color: #d97706;
+        }
+
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #dc2626;
+        }
+
+        /* ===== HIDDEN CANVAS ===== */
+        canvas {
+            display: none;
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div>
-            <h3>TEXCORP Telares <span class="industrial-badge">⚙️ OCR Industrial</span></h3>
-            <small style="opacity: 0.9;">Lectura automática de datos de producción</small>
+            <h3>Lectura de Telares Pro</h3>
+            <small>TEXCORP - Planta Lima | OCR Inteligente</small>
         </div>
-        <div id="current-time" style="font-size: 1rem; font-weight: bold;">--:--</div>
+        <div id="current-time">--:--</div>
     </header>
 
     <div class="controls-bar">
@@ -264,151 +637,180 @@
                 <option value="F">Festivo</option>
             </select>
         </div>
-        <button class="btn btn-blue" onclick="toggleQRScanner()">📷 Escanear QR</button>
+        <button class="btn btn-blue" onclick="toggleQRScanner()">📱 Escanear QR</button>
         
         <div style="flex-grow: 1;"></div>
         
-        <button class="btn btn-green" onclick="exportToCSV()">📊 CSV</button>
-        <button class="btn btn-green" onclick="exportToExcel()">📈 Excel</button>
-        <div style="margin-left: 15px; font-weight: bold; color: var(--primary-color);" id="progress-text">0/31</div>
+        <button class="btn btn-green" onclick="exportToCSV()">📊 Export CSV</button>
+        <button class="btn btn-green" onclick="exportToExcel()">📈 Export Excel</button>
+        <div id="progress-text">0/31 Completados</div>
     </div>
 
+    <!-- ===== QR SCANNER MODAL ===== -->
     <div id="qr-overlay" class="modal-overlay" style="z-index: 1100;">
         <div class="modal-content" style="background: transparent; box-shadow: none; text-align: center;">
             <div id="qr-video-container" style="display: block;">
-                <video id="qr-video" playsinline style="border-radius: 12px;"></video>
-                <div style="margin-top: 15px; color: white; font-weight: bold; font-size: 1.1rem;">
+                <video id="qr-video" playsinline></video>
+                <div style="margin-top: 16px; color: white; font-weight: 600; font-size: 1.125rem;">
                     🎯 Apunte al código QR del telar
                 </div>
-                <button class="btn btn-cancel" style="margin-top: 20px; border-radius: 8px;" onclick="stopQRScanner()">
+                <button class="btn btn-red" style="margin-top: 20px;" onclick="stopQRScanner()">
                     Cerrar Cámara
                 </button>
             </div>
         </div>
     </div>
 
-    <div class="plant-scroll-area">
-        <div class="plant-grid" id="plant-grid"></div>
+    <!-- ===== CAMERA CAPTURE MODAL ===== -->
+    <div id="camera-overlay" class="modal-overlay" style="z-index: 1200;">
+        <div class="modal-content" style="background: transparent; box-shadow: none; text-align: center;">
+            <div id="camera-modal-content" style="display: block;">
+                <video id="camera-video" playsinline></video>
+                <div style="margin-top: 16px; color: white; font-weight: 600; font-size: 1.125rem;">
+                    📸 Enfoca la pantalla del telar
+                </div>
+                <div style="margin-top: 20px; display: flex; justify-content: center; gap: 12px;">
+                    <button class="btn btn-green" onclick="capturePhoto()">📸 Capturar</button>
+                    <button class="btn btn-red" onclick="stopCamera()">❌ Cerrar</button>
+                </div>
+            </div>
+        </div>
     </div>
 
+    <!-- ===== TELAR PLANT GRID ===== -->
+    <div class="plant-scroll-area">
+        <div class="plant-grid" id="plant-grid">
+            <!-- Grid generado dinámicamente -->
+        </div>
+    </div>
+
+    <!-- ===== TELAR REGISTRATION MODAL ===== -->
     <div class="modal-overlay" id="modal-registro">
         <div class="modal-content">
-            <h2 id="modal-title" style="color: var(--primary-color); margin-bottom: 5px;">Registro de Telar</h2>
-            <p id="modal-subtitle" style="color:#666; font-size:0.9rem; margin-bottom:20px; padding-bottom: 10px; border-bottom: 2px solid #eee;"></p>
+            <h2 id="modal-title" style="color: var(--primary-color); margin-bottom: 8px;">Registro de Telar</h2>
+            <p id="modal-subtitle" style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 24px; padding-bottom: 12px; border-bottom: 2px solid var(--border-color);"></p>
             
             <form id="form-lectura">
                 
+                <!-- ===== OCR PANEL ===== -->
                 <div class="ocr-panel">
-                    <h4>⚙️ Sistema OCR Industrial</h4>
-                    <p>
-                        Tecnología Tesseract con pre-procesamiento avanzado. 
-                        Detecta automáticamente RPM, pasadas, eficiencia y metros desde pantallas de telar.
+                    <div class="processing-overlay" id="ocr-processing">
+                        <div class="processing-content">
+                            <div class="spinner"></div>
+                            <div id="processing-text">Procesando imagen...</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ocr-panel-header">
+                        <h4>🤖 OCR Inteligente</h4>
+                        <span class="tech-badge">Tesseract v5</span>
+                    </div>
+                    
+                    <p style="opacity: 0.8; margin-bottom: 16px; font-size: 0.875rem;">
+                        Sistema avanzado de reconocimiento óptico con pre-procesamiento inteligente y validación automática.
                     </p>
                     
-                    <div class="image-processing-area">
+                    <div class="ocr-controls">
+                        <div class="capture-section">
+                            <h5 style="margin-bottom: 8px; font-size: 0.875rem;">📸 Captura</h5>
+                            <button type="button" class="btn-capture" onclick="startCamera()">
+                                📱 Abrir Cámara
+                            </button>
+                            <input type="file" id="file-upload" accept="image/*" style="display: none;">
+                            <button type="button" class="btn-capture" onclick="document.getElementById('file-upload').click()">
+                                📁 Subir Imagen
+                            </button>
+                        </div>
+                        
+                        <div class="capture-section">
+                            <h5 style="margin-bottom: 8px; font-size: 0.875rem;">⚡ Procesamiento</h5>
+                            <button type="button" class="btn-capture" id="btn-process" onclick="runIntelligentOCR()" disabled>
+                                🧠 Analizar Imagen
+                            </button>
+                            <button type="button" class="btn-capture" onclick="clearOCRSession()">
+                                🗑️ Limpiar Todo
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-grid" id="preview-grid" style="display: none;">
                         <div class="preview-box">
-                            <div class="preview-label">📷 Imagen Original</div>
-                            <img id="img-original" alt="Esperando imagen..." style="display: none;">
-                            <div id="no-image-msg" style="opacity: 0.7; font-style: italic;">Sin imagen</div>
+                            <div class="preview-label">Original</div>
+                            <img id="img-original" alt="Imagen original">
                         </div>
                         <div class="preview-box">
-                            <div class="preview-label">🔧 Procesada (B/N)</div>
-                            <img id="img-processed" alt="Procesando..." style="display: none;">
-                            <div id="no-processed-msg" style="opacity: 0.7; font-style: italic;">Sin procesar</div>
+                            <div class="preview-label">Procesada</div>
+                            <img id="img-processed" alt="Imagen procesada">
                         </div>
                     </div>
                     
-                    <div class="capture-buttons">
-                        <input type="file" id="inp-foto-capture" accept="image/*" capture="environment" style="display: none;">
-                        <input type="file" id="inp-foto-gallery" accept="image/*" style="display: none;">
-                        <label for="inp-foto-capture" class="btn-capture">📱 Cámara</label>
-                        <label for="inp-foto-gallery" class="btn-capture">🖼️ Galería</label>
-                        <button type="button" class="btn-capture" id="process-btn" onclick="runIndustrialOCR()" disabled>
-                            ⚡ Procesar
-                        </button>
-                        <button type="button" class="btn-capture" onclick="enableManualMode()">✏️ Manual</button>
-                        <button type="button" class="btn-capture" onclick="clearOCRSession()">🗑️ Limpiar</button>
-                    </div>
-                    
-                    <div id="processing-status" class="processing-status">
-                        <div class="progress-ring"></div>
-                        <div id="process-text">Procesando imagen...</div>
-                    </div>
-                    
-                    <div class="results-grid" id="ocr-results" style="display: none;">
-                        <div class="result-badge" id="badge-rpm">
-                            <div class="value" id="result-rpm-val">--</div>
-                            <div class="label">RPM</div>
+                    <div class="ocr-results" id="ocr-results">
+                        <h5 style="margin-bottom: 12px; color: #10b981;">✨ Resultados Detectados</h5>
+                        <div class="results-grid">
+                            <div class="result-item">
+                                <div class="result-value" id="result-rpm">--</div>
+                                <div class="result-label">RPM</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-value" id="result-picks">--</div>
+                                <div class="result-label">Pasadas</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-value" id="result-eff">--</div>
+                                <div class="result-label">Eficiencia</div>
+                            </div>
+                            <div class="result-item">
+                                <div class="result-value" id="result-metros">--</div>
+                                <div class="result-label">Metros</div>
+                            </div>
                         </div>
-                        <div class="result-badge" id="badge-picks">
-                            <div class="value" id="result-picks-val">--</div>
-                            <div class="label">Pasadas</div>
-                        </div>
-                        <div class="result-badge" id="badge-eff">
-                            <div class="value" id="result-eff-val">--</div>
-                            <div class="label">Eficiencia</div>
-                        </div>
-                        <div class="result-badge" id="badge-metros">
-                            <div class="value" id="result-metros-val">--</div>
-                            <div class="label">Metros</div>
-                        </div>
-                    </div>
-                    
-                    <div class="ocr-console" id="ocr-console">
-                        > Sistema OCR listo. Cargue una imagen para comenzar...
                     </div>
                 </div>
                 
-                <div id="validation-alerts" class="validation-alerts"></div>
+                <!-- ===== VALIDATION ALERTS ===== -->
+                <div id="validation-alerts"></div>
                 
-                <div id="manual-input-section" class="manual-input-section">
-                    <h5 style="margin-bottom: 10px; color: #856404;">✏️ Modo Manual Activado</h5>
-                    <p style="font-size: 0.9rem; color: #856404;">
-                        Complete los campos manualmente o tome una nueva foto para detección automática.
-                    </p>
-                </div>
-                
+                <!-- ===== FORM FIELDS ===== -->
                 <div class="form-grid">
                     <div>
-                        <label>Operador</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">Operador</label>
                         <input type="text" id="inp-operador" placeholder="Nombre del operador" required>
                     </div>
                     <div>
-                        <label>RPM</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">RPM</label>
                         <input type="number" id="inp-rpm" placeholder="0" min="0" max="1200" required>
                     </div>
                     <div>
-                        <label>Pasadas / Picks</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">Pasadas / Picks</label>
                         <input type="number" id="inp-picks" placeholder="0" min="0" required>
                     </div>
                     <div>
-                        <label>Metros</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">Metros</label>
                         <input type="number" id="inp-metros" placeholder="0" min="0" step="0.01">
                     </div>
                     <div>
-                        <label>Eficiencia (%)</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">Eficiencia (%)</label>
                         <input type="number" id="inp-eficiencia" placeholder="0-100" min="0" max="100">
                     </div>
                     <div>
-                        <label>Defectos</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">Defectos</label>
                         <input type="number" id="inp-defectos" placeholder="0" min="0">
                     </div>
                     <div class="full-width">
-                        <label>Observaciones</label>
+                        <label style="display: block; margin-bottom: 6px; font-weight: 600; color: var(--text-secondary);">Observaciones</label>
                         <textarea id="inp-observaciones" placeholder="Notas adicionales sobre el telar..."></textarea>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 15px; margin-top: 25px; justify-content: flex-end;">
+                <div style="display: flex; gap: 16px; margin-top: 32px; justify-content: flex-end;">
                     <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-green" style="padding: 10px 25px;">
-                        💾 Guardar Registro
-                    </button>
+                    <button type="submit" class="btn btn-blue">💾 Guardar Registro</button>
                 </div>
             </form>
         </div>
     </div>
 
+    <!-- ===== HIDDEN PROCESSING CANVAS ===== -->
     <canvas id="processing-canvas"></canvas>
 
 <script>
@@ -427,36 +829,57 @@
     const appState = {
         fecha: new Date().toISOString().split('T')[0],
         turno: 'M',
-        lecturas: JSON.parse(localStorage.getItem('lecturasTexcorp_v3') || '[]'),
+        lecturas: JSON.parse(localStorage.getItem('lecturasTexcorpPro') || '[]'),
         operador: localStorage.getItem('lastOperador') || '',
         selectedTelar: null,
         currentImageData: null,
-        ocrResults: { rpm: null, picks: null, eficiencia: null, metros: null }
+        processedImageData: null
     };
 
-    // Elements
-    const elDate = document.getElementById('filter-date');
-    const elTurno = document.getElementById('filter-turno');
-    const inpOperador = document.getElementById('inp-operador');
-    const imgOriginal = document.getElementById('img-original');
-    const imgProcessed = document.getElementById('img-processed');
-    const processBtn = document.getElementById('process-btn');
-    const ocrConsole = document.getElementById('ocr-console');
+    // ===== ELEMENTOS DOM =====
+    const elements = {
+        date: document.getElementById('filter-date'),
+        turno: document.getElementById('filter-turno'),
+        operador: document.getElementById('inp-operador'),
+        fileUpload: document.getElementById('file-upload'),
+        imgOriginal: document.getElementById('img-original'),
+        imgProcessed: document.getElementById('img-processed'),
+        btnProcess: document.getElementById('btn-process'),
+        previewGrid: document.getElementById('preview-grid'),
+        ocrResults: document.getElementById('ocr-results'),
+        ocrProcessing: document.getElementById('ocr-processing'),
+        validationAlerts: document.getElementById('validation-alerts')
+    };
 
-    // Initialize
-    elDate.value = appState.fecha;
-    elTurno.value = appState.turno;
-    inpOperador.value = appState.operador;
+    // ===== INICIALIZACIÓN =====
+    elements.date.value = appState.fecha;
+    elements.turno.value = appState.turno;
+    elements.operador.value = appState.operador;
 
-    // ===== RENDER TELAR PLANT =====
+    // Event Listeners
+    elements.date.addEventListener('change', (e) => { 
+        appState.fecha = e.target.value; 
+        renderPlant(); 
+    });
+    
+    elements.turno.addEventListener('change', (e) => { 
+        appState.turno = e.target.value; 
+        renderPlant(); 
+    });
+
+    elements.fileUpload.addEventListener('change', handleFileUpload);
+
+    // ===== RENDER PLANT (PRESERVANDO LAYOUT ORIGINAL) =====
     function renderPlant() {
         const grid = document.getElementById('plant-grid');
         grid.innerHTML = '';
 
+        // Crear 9 columnas exactamente como en ef8_.html
         for(let col = 0; col < 9; col++) {
             const columnDiv = document.createElement('div');
             columnDiv.className = 'plant-column';
             
+            // 4 filas por columna
             for(let row = 0; row < 4; row++) {
                 const telar = telares.find(t => t.pos[0] === col && t.pos[1] === row);
                 
@@ -471,25 +894,26 @@
                     card.className = 'telar-card';
                     card.onclick = () => openModal(telar.id);
                     
-                    let statusClass = lectura ? (lectura.rpm > 0 ? 'status-working' : 'status-paused') : 'status-pending';
-                    let statusText = lectura ? (lectura.rpm > 0 ? 'TRABAJANDO' : 'PARADO') : 'SIN DATOS';
-                    
-                    const eficiencia = lectura ? (lectura.eficiencia || '?') : '?';
+                    const status = getTelarStatus(lectura);
+                    const efficiency = lectura?.eficiencia ? `${lectura.eficiencia}%` : '?';
                     
                     card.innerHTML = `
                         <div class="card-top">
                             <span>TELAR ${telar.id}</span>
-                            <span>${lectura ? lectura.rpm + ' RPM' : '--'}</span>
+                            <span style="color: var(--secondary-color);">${lectura ? lectura.rpm + ' RPM' : '--'}</span>
                         </div>
-                        <div class="card-status-bar ${statusClass}">${statusText}</div>
+                        <div class="card-status-bar ${status.class}">${status.text}</div>
                         <div class="card-body">
                             <strong>${lectura ? new Intl.NumberFormat().format(lectura.picks) + ' picks' : 'Sin lecturas'}</strong>
-                            ${lectura ? `${lectura.operador} | ${eficiencia}% eff` : 'Pendiente de lectura'}
+                            <div>${lectura ? `${lectura.operador} | Eff: ${efficiency}` : 'Pendiente de registro'}</div>
                         </div>
-                        <div class="card-footer">${lectura ? `Metros: ${lectura.metros || 0} | Defectos: ${lectura.defectos || 0}` : 'No registrado'}</div>
+                        <div class="card-footer">
+                            ${lectura ? `Metros: ${lectura.metros || 0} | Defectos: ${lectura.defectos || 0}` : 'No registrado'}
+                        </div>
                     `;
                     columnDiv.appendChild(card);
                 } else {
+                    // Espacios vacíos para mantener el grid
                     const emptyCard = document.createElement('div');
                     emptyCard.className = 'empty-card-space';
                     columnDiv.appendChild(emptyCard);
@@ -498,34 +922,37 @@
             grid.appendChild(columnDiv);
         }
 
-        const completadas = appState.lecturas.filter(l => l.fecha === appState.fecha && l.turno === appState.turno).length;
-        document.getElementById('progress-text').innerText = `${completadas}/31`;
+        updateProgressCounter();
+    }
+
+    function getTelarStatus(lectura) {
+        if (!lectura) return { class: 'status-pending', text: 'SIN DATOS' };
+        if (lectura.rpm > 0) return { class: 'status-working', text: 'TRABAJANDO' };
+        return { class: 'status-paused', text: 'PARADO' };
+    }
+
+    function updateProgressCounter() {
+        const completadas = appState.lecturas.filter(l => 
+            l.fecha === appState.fecha && l.turno === appState.turno
+        ).length;
+        document.getElementById('progress-text').textContent = `${completadas}/31 Completados`;
     }
 
     // ===== MODAL CONTROLS =====
     function openModal(telarId) {
         appState.selectedTelar = telarId;
         const modal = document.getElementById('modal-registro');
-        document.getElementById('modal-title').innerText = `Registro Telar ${telarId}`;
-        document.getElementById('modal-subtitle').innerText = `📅 ${appState.fecha} | 🕐 Turno ${appState.turno}`;
         
-        const lectura = appState.lecturas.find(l => l.telarId === telarId && l.fecha === appState.fecha && l.turno === appState.turno);
-        if(lectura) {
-            // Cargar datos existentes
-            document.getElementById('inp-operador').value = lectura.operador;
-            document.getElementById('inp-rpm').value = lectura.rpm;
-            document.getElementById('inp-picks').value = lectura.picks;
-            document.getElementById('inp-metros').value = lectura.metros || '';
-            document.getElementById('inp-eficiencia').value = lectura.eficiencia || '';
-            document.getElementById('inp-defectos').value = lectura.defectos || '';
-            document.getElementById('inp-observaciones').value = lectura.observaciones || '';
-        } else {
-            // Nuevo registro
-            document.getElementById('form-lectura').reset();
-            document.getElementById('inp-operador').value = appState.operador;
-        }
+        document.getElementById('modal-title').textContent = `Registro Telar ${telarId}`;
+        document.getElementById('modal-subtitle').textContent = 
+            `📅 ${appState.fecha} | ⏰ Turno ${appState.turno}`;
         
+        // Cargar datos existentes si los hay
+        loadExistingData(telarId);
+        
+        // Limpiar sesión OCR
         clearOCRSession();
+        
         modal.style.display = 'flex';
     }
 
@@ -535,11 +962,42 @@
         clearOCRSession();
     }
 
+    function loadExistingData(telarId) {
+        const lectura = appState.lecturas.find(l => 
+            l.telarId === telarId && 
+            l.fecha === appState.fecha && 
+            l.turno === appState.turno
+        );
+
+        if (lectura) {
+            document.getElementById('inp-operador').value = lectura.operador;
+            document.getElementById('inp-rpm').value = lectura.rpm;
+            document.getElementById('inp-picks').value = lectura.picks;
+            document.getElementById('inp-metros').value = lectura.metros || '';
+            document.getElementById('inp-eficiencia').value = lectura.eficiencia || '';
+            document.getElementById('inp-defectos').value = lectura.defectos || '';
+            document.getElementById('inp-observaciones').value = lectura.observaciones || '';
+        } else {
+            document.getElementById('form-lectura').reset();
+            document.getElementById('inp-operador').value = appState.operador;
+        }
+    }
+
     // ===== FORM SUBMISSION =====
     document.getElementById('form-lectura').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const formData = {
+        const formData = collectFormData();
+        
+        if (!validateFormData(formData)) return;
+        
+        saveTelarData(formData);
+        closeModal();
+        renderPlant();
+    });
+
+    function collectFormData() {
+        return {
             telarId: appState.selectedTelar,
             fecha: appState.fecha,
             turno: appState.turno,
@@ -552,47 +1010,56 @@
             observaciones: document.getElementById('inp-observaciones').value.trim(),
             timestamp: new Date().toISOString()
         };
+    }
+
+    function validateFormData(data) {
+        const errors = [];
         
-        if(!formData.operador) {
-            showValidationAlert('error', 'El nombre del operador es obligatorio');
-            return;
+        if (!data.operador) {
+            errors.push({ type: 'error', message: 'El nombre del operador es obligatorio' });
         }
-
-        // Validaciones industriales
-        const alerts = validateIndustrialData(formData);
-        if (alerts.length > 0) {
-            showValidationAlerts(alerts);
-            return;
+        
+        if (data.rpm === 0) {
+            errors.push({ type: 'error', message: 'RPM no puede ser 0' });
         }
+        
+        if (data.picks === 0) {
+            errors.push({ type: 'error', message: 'Las pasadas no pueden ser 0' });
+        }
+        
+        if (data.rpm > 1200) {
+            errors.push({ type: 'warning', message: 'RPM muy alto, verificar lectura' });
+        }
+        
+        if (data.eficiencia && (data.eficiencia < 30 || data.eficiencia > 100)) {
+            errors.push({ type: 'warning', message: 'Eficiencia fuera del rango normal (30-100%)' });
+        }
+        
+        showValidationAlerts(errors);
+        
+        return errors.filter(e => e.type === 'error').length === 0;
+    }
 
-        const existingIdx = appState.lecturas.findIndex(l => 
-            l.telarId === appState.selectedTelar && 
-            l.fecha === appState.fecha && 
-            l.turno === appState.turno
+    function saveTelarData(data) {
+        const existingIndex = appState.lecturas.findIndex(l => 
+            l.telarId === data.telarId && 
+            l.fecha === data.fecha && 
+            l.turno === data.turno
         );
 
-        if(existingIdx >= 0) {
-            appState.lecturas[existingIdx] = formData;
+        if (existingIndex >= 0) {
+            appState.lecturas[existingIndex] = data;
         } else {
-            appState.lecturas.push(formData);
+            appState.lecturas.push(data);
         }
 
-        localStorage.setItem('lecturasTexcorp_v3', JSON.stringify(appState.lecturas));
-        localStorage.setItem('lastOperador', formData.operador);
-        appState.operador = formData.operador;
+        localStorage.setItem('lecturasTexcorpPro', JSON.stringify(appState.lecturas));
+        localStorage.setItem('lastOperador', data.operador);
+        appState.operador = data.operador;
+    }
 
-        logToConsole('✅ Registro guardado exitosamente');
-        closeModal();
-        renderPlant();
-    });
-
-    // ===== INDUSTRIAL OCR SYSTEM =====
-    
-    // File input handlers
-    document.getElementById('inp-foto-capture').addEventListener('change', handleImageCapture);
-    document.getElementById('inp-foto-gallery').addEventListener('change', handleImageCapture);
-
-    function handleImageCapture(e) {
+    // ===== OCR SYSTEM =====
+    function handleFileUpload(e) {
         const file = e.target.files[0];
         if (!file) return;
 
@@ -601,15 +1068,11 @@
             const img = new Image();
             img.onload = function() {
                 appState.currentImageData = img;
-                imgOriginal.src = evt.target.result;
-                imgOriginal.style.display = 'block';
-                document.getElementById('no-image-msg').style.display = 'none';
+                elements.imgOriginal.src = evt.target.result;
                 
-                // Aplicar pre-procesamiento inmediatamente
+                showPreviewGrid();
                 preprocessImage(img);
-                processBtn.disabled = false;
-                
-                logToConsole('📷 Imagen cargada. Pre-procesamiento aplicado automáticamente.');
+                elements.btnProcess.disabled = false;
             };
             img.src = evt.target.result;
         };
@@ -621,7 +1084,7 @@
         const ctx = canvas.getContext('2d');
 
         // Redimensionar para OCR óptimo
-        const targetWidth = 800;
+        const targetWidth = 1000;
         const scale = targetWidth / img.width;
         canvas.width = targetWidth;
         canvas.height = img.height * scale;
@@ -629,199 +1092,246 @@
         // Dibujar imagen escalada
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
 
-        // ALGORITMO DE BINARIZACIÓN MEJORADO
-        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-        let data = imageData.data;
-
-        // Calcular threshold dinámico (Método Otsu simplificado)
-        const threshold = calculateOptimalThreshold(data);
-        
-        logToConsole(`🔧 Aplicando binarización con threshold: ${threshold}`);
-
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-
-            // Conversión a escala de grises con pesos perceptuales
-            const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
-
-            // Aplicar threshold
-            const val = gray < threshold ? 0 : 255;
-
-            data[i] = val;     // R
-            data[i + 1] = val; // G
-            data[i + 2] = val; // B
-        }
-
-        ctx.putImageData(imageData, 0, 0);
+        // Aplicar filtros avanzados
+        applyAdvancedFilters(ctx, canvas.width, canvas.height);
         
         // Mostrar imagen procesada
-        imgProcessed.src = canvas.toDataURL();
-        imgProcessed.style.display = 'block';
-        document.getElementById('no-processed-msg').style.display = 'none';
-        
-        logToConsole('✨ Pre-procesamiento completado. Imagen optimizada para OCR.');
+        elements.imgProcessed.src = canvas.toDataURL();
+        appState.processedImageData = canvas;
     }
 
-    function calculateOptimalThreshold(data) {
-        // Histograma simplificado para calcular threshold óptimo
-        const histogram = new Array(256).fill(0);
-        
+    function applyAdvancedFilters(ctx, width, height) {
+        let imageData = ctx.getImageData(0, 0, width, height);
+        let data = imageData.data;
+
+        // 1. CONVERSIÓN A ESCALA DE GRISES OPTIMIZADA
         for (let i = 0; i < data.length; i += 4) {
             const r = data[i];
             const g = data[i + 1];
             const b = data[i + 2];
-            const gray = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+
+            // Fórmula optimizada para pantallas LCD
+            const gray = 0.299 * r + 0.587 * g + 0.114 * b;
+
+            data[i] = gray;
+            data[i + 1] = gray;
+            data[i + 2] = gray;
+        }
+
+        // 2. FILTRO DE CONTRASTE ADAPTATIVO
+        const threshold = calculateAdaptiveThreshold(data);
+        
+        // 3. BINARIZACIÓN CON THRESHOLD DINÁMICO
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = data[i];
+            const val = gray < threshold ? 0 : 255;
+
+            data[i] = val;
+            data[i + 1] = val;
+            data[i + 2] = val;
+        }
+
+        // 4. FILTRO DE RUIDO (MEDIAN FILTER SIMPLIFICADO)
+        const filteredData = applyNoiseReduction(data, width, height);
+        
+        ctx.putImageData(new ImageData(filteredData, width, height), 0, 0);
+    }
+
+    function calculateAdaptiveThreshold(data) {
+        const histogram = new Array(256).fill(0);
+        
+        // Crear histograma
+        for (let i = 0; i < data.length; i += 4) {
+            const gray = Math.round(data[i]);
             histogram[gray]++;
         }
 
-        // Encontrar el valle entre los dos picos (fondo y texto)
-        // Método simplificado: usar percentil 40-60
+        // Método de Otsu simplificado
         const totalPixels = data.length / 4;
-        let cumulative = 0;
+        let sum = 0;
         
         for (let i = 0; i < 256; i++) {
-            cumulative += histogram[i];
-            if (cumulative > totalPixels * 0.5) {
-                return Math.max(80, Math.min(140, i)); // Limitar entre 80-140
+            sum += i * histogram[i];
+        }
+
+        let sumB = 0;
+        let wB = 0;
+        let wF = 0;
+        let maxVariance = 0;
+        let threshold = 0;
+
+        for (let i = 0; i < 256; i++) {
+            wB += histogram[i];
+            if (wB === 0) continue;
+
+            wF = totalPixels - wB;
+            if (wF === 0) break;
+
+            sumB += i * histogram[i];
+
+            const mB = sumB / wB;
+            const mF = (sum - sumB) / wF;
+
+            const variance = wB * wF * Math.pow(mB - mF, 2);
+
+            if (variance > maxVariance) {
+                maxVariance = variance;
+                threshold = i;
+            }
+        }
+
+        // Ajustar threshold para pantallas de telar
+        return Math.max(80, Math.min(160, threshold));
+    }
+
+    function applyNoiseReduction(data, width, height) {
+        const filtered = new Uint8ClampedArray(data);
+        
+        // Aplicar filtro mediano 3x3 simplificado
+        for (let y = 1; y < height - 1; y++) {
+            for (let x = 1; x < width - 1; x++) {
+                const idx = (y * width + x) * 4;
+                
+                // Recoger valores vecinos
+                const neighbors = [];
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const nIdx = ((y + dy) * width + (x + dx)) * 4;
+                        neighbors.push(data[nIdx]);
+                    }
+                }
+                
+                // Mediana
+                neighbors.sort((a, b) => a - b);
+                const median = neighbors[4];
+                
+                filtered[idx] = median;
+                filtered[idx + 1] = median;
+                filtered[idx + 2] = median;
             }
         }
         
-        return 110; // Fallback
+        return filtered;
     }
 
-    async function runIndustrialOCR() {
-        if (!appState.currentImageData) {
-            showValidationAlert('warning', 'No hay imagen cargada para procesar');
+    async function runIntelligentOCR() {
+        if (!appState.processedImageData) {
+            showAlert('error', 'No hay imagen procesada para analizar');
             return;
         }
 
-        const processingStatus = document.getElementById('processing-status');
-        const processText = document.getElementById('process-text');
-        
-        processingStatus.style.display = 'block';
-        processBtn.disabled = true;
-        
-        logToConsole('🚀 Iniciando sistema OCR industrial Tesseract v5...');
+        showProcessing(true);
 
         try {
-            processText.textContent = 'Inicializando engine OCR...';
-            await delay(300);
-            
-            processText.textContent = 'Ejecutando reconocimiento de texto...';
-            
-            // Usar canvas procesado para OCR
+            // Configuración avanzada de Tesseract
             const { data: { text } } = await Tesseract.recognize(
-                document.getElementById('processing-canvas'),
-                'eng', // Inglés es mejor para números
+                appState.processedImageData,
+                'eng', // Inglés funciona mejor para números
                 {
-                    tessedit_char_whitelist: '0123456789.rpm%MPasdnsmetros:', 
+                    tessedit_char_whitelist: '0123456789.rpm%MPasdnsETxurlconetriby',
                     tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+                    tessedit_ocr_engine_mode: Tesseract.OEM.LSTM_ONLY,
                     preserve_interword_spaces: '1',
-                    logger: m => {
-                        if(m.status === 'recognizing text') {
-                            const progress = Math.round(m.progress * 100);
-                            processText.textContent = `Reconociendo texto: ${progress}%`;
-                            logToConsole(`📈 Progreso OCR: ${progress}%`);
-                        }
-                    }
+                    logger: updateProcessingProgress
                 }
             );
 
-            logToConsole('📄 Texto detectado:\n' + text);
-            
-            // Procesar y validar resultados
-            const extractedData = parseIndustrialData(text);
-            displayOCRResults(extractedData);
-            updateFormFields(extractedData);
-            
-            // Validar resultados
-            const validationResults = validateOCRResults(extractedData);
-            showValidationAlerts(validationResults);
+            const results = parseIntelligentResults(text);
+            displayOCRResults(results);
+            updateFormFields(results);
+            validateAndShowAlerts(results);
 
         } catch (error) {
-            logToConsole('❌ ERROR OCR: ' + error.message);
-            showValidationAlert('error', 'Error en el procesamiento OCR: ' + error.message);
-            enableManualMode();
+            console.error('OCR Error:', error);
+            showAlert('error', 'Error en el procesamiento OCR: ' + error.message);
         } finally {
-            processingStatus.style.display = 'none';
-            processBtn.disabled = false;
+            showProcessing(false);
         }
     }
 
-    function parseIndustrialData(text) {
-        // Limpieza avanzada de errores comunes de OCR
+    function parseIntelligentResults(text) {
+        console.log('Texto OCR crudo:', text);
+        
+        // Limpiar texto con correcciones inteligentes
         const cleanText = text
-            .replace(/[O|o]/g, '0')
-            .replace(/[S|s]/g, '5')
-            .replace(/[l|I]/g, '1')
+            .replace(/[O|o|Q]/g, '0')
+            .replace(/[S|s|§]/g, '5')
+            .replace(/[l|I|1|!]/g, '1')
             .replace(/[Z]/g, '2')
-            .replace(/[G]/g, '6')
+            .replace(/[G|6]/g, '6')
+            .replace(/[B]/g, '8')
             .toLowerCase();
-
-        logToConsole('🧹 Texto limpio: ' + cleanText);
 
         const results = {
             rpm: null,
             picks: null,
             eficiencia: null,
             metros: null,
-            rawText: text
+            confidence: { rpm: 0, picks: 0, eficiencia: 0, metros: 0 }
         };
 
-        const lines = cleanText.split('\n').filter(line => line.trim());
-        
-        lines.forEach(line => {
-            logToConsole(`🔍 Analizando línea: "${line}"`);
-            
-            // Buscar RPM - más flexible
-            if (line.includes('rpm') || line.match(/\d+\s*r\w*m/)) {
-                const match = line.match(/(\d+)/);
-                if (match) {
-                    const val = parseInt(match[1]);
-                    if (val >= 50 && val <= 1200) { // Rango industrial típico
+        const lines = cleanText.split(/[\n\r]+/).filter(line => line.trim());
+
+        lines.forEach((line, index) => {
+            console.log(`Línea ${index}: "${line}"`);
+
+            // DETECCIÓN RPM INTELIGENTE
+            if (!results.rpm && (line.includes('rpm') || /\d+\s*r[pm]/.test(line))) {
+                const rpmMatch = line.match(/(\d{2,4})\s*r?p?m?/i);
+                if (rpmMatch) {
+                    const val = parseInt(rpmMatch[1]);
+                    if (val >= 50 && val <= 1200) {
                         results.rpm = val;
-                        logToConsole(`✅ RPM detectadas: ${val}`);
+                        results.confidence.rpm = 90;
+                        console.log(`✅ RPM detectadas: ${val}`);
                     }
                 }
             }
 
-            // Buscar eficiencia (porcentaje)
-            if (line.includes('%') || line.includes('eff')) {
-                const match = line.match(/(\d+(?:\.\d+)?)/);
-                if (match) {
-                    const val = parseFloat(match[1]);
-                    if (val >= 0 && val <= 100) {
+            // DETECCIÓN EFICIENCIA
+            if (!results.eficiencia && (line.includes('%') || line.includes('eff'))) {
+                const effMatch = line.match(/(\d{1,3}(?:\.\d+)?)\s*%?/);
+                if (effMatch) {
+                    const val = parseFloat(effMatch[1]);
+                    if (val > 0 && val <= 100) {
                         results.eficiencia = val;
-                        logToConsole(`✅ Eficiencia detectada: ${val}%`);
+                        results.confidence.eficiencia = 85;
+                        console.log(`✅ Eficiencia detectada: ${val}%`);
                     }
                 }
             }
 
-            // Buscar metros
-            if (line.includes('metro') || line.includes('mts') || line.includes('preselec')) {
-                const match = line.match(/(\d+)/);
-                if (match) {
-                    const val = parseInt(match[1]);
+            // DETECCIÓN METROS
+            if (!results.metros && (line.includes('metro') || line.includes('preselec'))) {
+                const metrosMatch = line.match(/(\d{3,6})/);
+                if (metrosMatch) {
+                    const val = parseInt(metrosMatch[1]);
                     if (val > 0 && val < 100000) {
                         results.metros = val;
-                        logToConsole(`✅ Metros detectados: ${val}`);
+                        results.confidence.metros = 80;
+                        console.log(`✅ Metros detectados: ${val}`);
                     }
                 }
             }
 
-            // Buscar pasadas/picks - números grandes pero razonables
-            const numbersInLine = line.match(/\d+/g);
-            if (numbersInLine) {
-                numbersInLine.forEach(numStr => {
+            // DETECCIÓN PASADAS/PICKS INTELIGENTE
+            const numbers = line.match(/\d{4,8}/g);
+            if (numbers && !results.picks) {
+                numbers.forEach(numStr => {
                     const num = parseInt(numStr);
-                    // Rango típico de pasadas: 1000 - 800000
-                    if (num >= 1000 && num <= 800000 && !results.picks) {
-                        // Evitar números que parecen fechas o horas
-                        if (numStr.length >= 4) {
+                    
+                    // Lógica inteligente para distinguir pasadas de contadores
+                    if (num >= 1000 && num <= 999999) { // Rango típico de pasadas
+                        // Preferir números más pequeños (pasadas) sobre números muy grandes (contadores)
+                        if (num < 500000) {
                             results.picks = num;
-                            logToConsole(`✅ Pasadas detectadas: ${num}`);
+                            results.confidence.picks = 95;
+                            console.log(`✅ Pasadas detectadas: ${num}`);
+                        } else if (!results.picks) {
+                            // Si no hay alternativa mejor, usar número grande pero con menos confianza
+                            results.picks = num;
+                            results.confidence.picks = 60;
+                            console.log(`⚠️ Posibles pasadas (número alto): ${num}`);
                         }
                     }
                 });
@@ -831,195 +1341,207 @@
         return results;
     }
 
-    function displayOCRResults(data) {
-        const resultsGrid = document.getElementById('ocr-results');
-        
-        document.getElementById('result-rpm-val').textContent = data.rpm || '--';
-        document.getElementById('result-picks-val').textContent = data.picks ? data.picks.toLocaleString() : '--';
-        document.getElementById('result-eff-val').textContent = data.eficiencia ? data.eficiencia + '%' : '--';
-        document.getElementById('result-metros-val').textContent = data.metros || '--';
-        
-        resultsGrid.style.display = 'grid';
-        
-        // Guardar en estado de la app
-        appState.ocrResults = data;
+    function displayOCRResults(results) {
+        document.getElementById('result-rpm').textContent = results.rpm || '--';
+        document.getElementById('result-picks').textContent = 
+            results.picks ? results.picks.toLocaleString() : '--';
+        document.getElementById('result-eff').textContent = 
+            results.eficiencia ? results.eficiencia + '%' : '--';
+        document.getElementById('result-metros').textContent = results.metros || '--';
+
+        elements.ocrResults.style.display = 'block';
     }
 
-    function updateFormFields(data) {
-        if (data.rpm) {
-            document.getElementById('inp-rpm').value = data.rpm;
-            document.getElementById('inp-rpm').style.backgroundColor = '#d4edda';
-        }
-        if (data.picks) {
-            document.getElementById('inp-picks').value = data.picks;
-            document.getElementById('inp-picks').style.backgroundColor = '#d4edda';
-        }
-        if (data.eficiencia) {
-            document.getElementById('inp-eficiencia').value = data.eficiencia;
-            document.getElementById('inp-eficiencia').style.backgroundColor = '#d4edda';
-        }
-        if (data.metros) {
-            document.getElementById('inp-metros').value = data.metros;
-            document.getElementById('inp-metros').style.backgroundColor = '#d4edda';
-        }
+    function updateFormFields(results) {
+        const fields = [
+            { id: 'inp-rpm', value: results.rpm },
+            { id: 'inp-picks', value: results.picks },
+            { id: 'inp-eficiencia', value: results.eficiencia },
+            { id: 'inp-metros', value: results.metros }
+        ];
+
+        fields.forEach(field => {
+            if (field.value) {
+                const element = document.getElementById(field.id);
+                element.value = field.value;
+                element.style.background = 'linear-gradient(135deg, #d1fae5, #a7f3d0)';
+                element.style.borderColor = '#10b981';
+            }
+        });
     }
 
-    // ===== VALIDATION SYSTEM =====
-    function validateOCRResults(data) {
+    function validateAndShowAlerts(results) {
         const alerts = [];
 
-        if (data.rpm && (data.rpm < 100 || data.rpm > 1000)) {
+        if (results.rpm && (results.rpm < 100 || results.rpm > 1000)) {
             alerts.push({
                 type: 'warning',
-                message: `RPM ${data.rpm} fuera del rango típico (100-1000). Verificar lectura.`
+                message: `⚠️ RPM ${results.rpm} fuera del rango típico (100-1000)`
             });
         }
 
-        if (data.eficiencia && (data.eficiencia < 30 || data.eficiencia > 100)) {
+        if (results.picks && results.picks > 500000) {
             alerts.push({
                 type: 'warning',
-                message: `Eficiencia ${data.eficiencia}% inusual. Rango típico: 30-100%.`
+                message: `⚠️ Número de pasadas alto (${results.picks.toLocaleString()}). ¿Es contador acumulativo?`
             });
         }
 
-        if (data.picks && data.picks > 500000) {
+        if (results.eficiencia && (results.eficiencia < 30 || results.eficiencia > 100)) {
             alerts.push({
                 type: 'warning',
-                message: `Número de pasadas muy alto (${data.picks.toLocaleString()}). ¿Podría ser contador acumulativo?`
+                message: `⚠️ Eficiencia ${results.eficiencia}% fuera del rango normal`
             });
         }
 
-        if (!data.rpm && !data.picks) {
+        if (!results.rpm && !results.picks) {
             alerts.push({
                 type: 'error',
-                message: 'No se detectaron valores principales (RPM/Pasadas). Verificar calidad de imagen.'
+                message: '❌ No se detectaron valores principales. Verificar calidad de imagen.'
             });
         } else {
             alerts.push({
                 type: 'success',
-                message: '✅ Datos extraídos exitosamente. Revisar y confirmar antes de guardar.'
+                message: '✅ Datos extraídos exitosamente. Revisar antes de guardar.'
             });
         }
 
-        return alerts;
+        showValidationAlerts(alerts);
     }
 
-    function validateIndustrialData(formData) {
-        const alerts = [];
+    // ===== UI HELPER FUNCTIONS =====
+    function showProcessing(show) {
+        elements.ocrProcessing.style.display = show ? 'flex' : 'none';
+        elements.btnProcess.disabled = show;
+    }
 
-        if (formData.rpm === 0) {
-            alerts.push({
-                type: 'error',
-                message: 'RPM no puede ser 0. El telar debe tener actividad.'
-            });
+    function updateProcessingProgress(m) {
+        if (m.status === 'recognizing text') {
+            const progress = Math.round(m.progress * 100);
+            document.getElementById('processing-text').textContent = 
+                `Reconociendo texto... ${progress}%`;
         }
+    }
 
-        if (formData.picks === 0) {
-            alerts.push({
-                type: 'error',
-                message: 'Las pasadas no pueden ser 0. Verificar contador.'
-            });
-        }
+    function showPreviewGrid() {
+        elements.previewGrid.style.display = 'grid';
+    }
 
-        if (formData.eficiencia && formData.eficiencia < 20) {
-            alerts.push({
-                type: 'warning',
-                message: 'Eficiencia muy baja. ¿Hay problemas en el telar?'
-            });
-        }
+    function clearOCRSession() {
+        // Reset UI elements
+        elements.previewGrid.style.display = 'none';
+        elements.ocrResults.style.display = 'none';
+        elements.validationAlerts.innerHTML = '';
+        elements.btnProcess.disabled = true;
+        elements.fileUpload.value = '';
 
-        return alerts;
+        // Reset form field styles
+        const fieldIds = ['inp-rpm', 'inp-picks', 'inp-eficiencia', 'inp-metros'];
+        fieldIds.forEach(id => {
+            const element = document.getElementById(id);
+            element.style.background = '';
+            element.style.borderColor = '';
+        });
+
+        // Reset state
+        appState.currentImageData = null;
+        appState.processedImageData = null;
     }
 
     function showValidationAlerts(alerts) {
-        const container = document.getElementById('validation-alerts');
-        container.innerHTML = '';
+        elements.validationAlerts.innerHTML = '';
         
         alerts.forEach(alert => {
             const div = document.createElement('div');
             div.className = `alert alert-${alert.type}`;
-            
-            const icon = alert.type === 'error' ? '❌' : 
-                        alert.type === 'warning' ? '⚠️' : '✅';
-                        
-            div.innerHTML = `${icon} ${alert.message}`;
-            container.appendChild(div);
+            div.innerHTML = alert.message;
+            elements.validationAlerts.appendChild(div);
         });
-        
-        container.style.display = alerts.length > 0 ? 'block' : 'none';
     }
 
-    function showValidationAlert(type, message) {
+    function showAlert(type, message) {
         showValidationAlerts([{ type, message }]);
     }
 
-    // ===== UTILITY FUNCTIONS =====
-    function enableManualMode() {
-        document.getElementById('manual-input-section').style.display = 'block';
-        document.getElementById('inp-operador').focus();
-        logToConsole('✏️ Modo manual activado. Complete los campos manualmente.');
+    // ===== CAMERA FUNCTIONS =====
+    let camVideo = document.getElementById('camera-video');
+    let camStream = null;
+
+    async function startCamera() {
+        const overlay = document.getElementById('camera-overlay');
+        overlay.style.display = 'flex';
+        
+        try {
+            camStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment", width: 1280, height: 720 } 
+            });
+            camVideo.srcObject = camStream;
+            camVideo.play();
+        } catch(err) {
+            showAlert('error', 'Error al acceder a la cámara');
+            overlay.style.display = 'none';
+        }
     }
 
-    function clearOCRSession() {
-        // Reset images
-        imgOriginal.style.display = 'none';
-        imgProcessed.style.display = 'none';
-        document.getElementById('no-image-msg').style.display = 'block';
-        document.getElementById('no-processed-msg').style.display = 'block';
-        
-        // Reset UI
-        document.getElementById('ocr-results').style.display = 'none';
-        document.getElementById('processing-status').style.display = 'none';
-        document.getElementById('manual-input-section').style.display = 'none';
-        document.getElementById('validation-alerts').style.display = 'none';
-        
-        // Reset file inputs
-        document.getElementById('inp-foto-capture').value = '';
-        document.getElementById('inp-foto-gallery').value = '';
-        
-        // Reset form field colors
-        ['inp-rpm', 'inp-picks', 'inp-eficiencia', 'inp-metros'].forEach(id => {
-            document.getElementById(id).style.backgroundColor = '';
-        });
-        
-        processBtn.disabled = true;
-        appState.currentImageData = null;
-        appState.ocrResults = { rpm: null, picks: null, eficiencia: null, metros: null };
-        
-        logToConsole('🗑️ Sesión OCR limpiada. Listo para nueva imagen.');
+    function stopCamera() {
+        const overlay = document.getElementById('camera-overlay');
+        if(camStream) {
+            camStream.getTracks().forEach(track => track.stop());
+            camStream = null;
+        }
+        overlay.style.display = 'none';
     }
 
-    function logToConsole(message) {
-        const timestamp = new Date().toLocaleTimeString();
-        const logDiv = document.createElement('div');
-        logDiv.textContent = `[${timestamp}] ${message}`;
-        ocrConsole.appendChild(logDiv);
-        ocrConsole.scrollTop = ocrConsole.scrollHeight;
+    function capturePhoto() {
+        const canvas = document.createElement('canvas');
+        canvas.width = camVideo.videoWidth;
+        canvas.height = camVideo.videoHeight;
+        const ctx = canvas.getContext('2d');
+        
+        // Capturar imagen del video
+        ctx.scale(-1, 1); // Deshacer el flip
+        ctx.drawImage(camVideo, -canvas.width, 0, canvas.width, canvas.height);
+        
+        const dataUrl = canvas.toDataURL('image/png');
+        
+        // Procesar como si fuera un archivo subido
+        const img = new Image();
+        img.onload = function() {
+            appState.currentImageData = img;
+            elements.imgOriginal.src = dataUrl;
+            
+            showPreviewGrid();
+            preprocessImage(img);
+            elements.btnProcess.disabled = false;
+        };
+        img.src = dataUrl;
+        
+        stopCamera();
     }
 
-    function delay(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
-
-    // ===== QR SCANNER (Preserved from original) =====
-    let video = document.getElementById('qr-video');
+    // ===== QR SCANNER (PRESERVADO) =====
+    let qrVideo = document.getElementById('qr-video');
     let qrStream = null;
-    let isScanning = false;
+    let isQRScanning = false;
 
     async function toggleQRScanner() {
         const overlay = document.getElementById('qr-overlay');
-        if(isScanning) return;
+        if(isQRScanning) { 
+            stopQRScanner(); 
+            return; 
+        }
 
         overlay.style.display = 'flex';
         try {
-            qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            video.srcObject = qrStream;
-            video.setAttribute("playsinline", true);
-            video.play();
-            isScanning = true;
+            qrStream = await navigator.mediaDevices.getUserMedia({ 
+                video: { facingMode: "environment" } 
+            });
+            qrVideo.srcObject = qrStream;
+            qrVideo.play();
+            isQRScanning = true;
             requestAnimationFrame(tickQR);
         } catch(err) {
-            alert("No se pudo acceder a la cámara. Verificar permisos.");
+            showAlert('error', 'No se pudo acceder a la cámara para QR');
             overlay.style.display = 'none';
         }
     }
@@ -1030,21 +1552,20 @@
             qrStream.getTracks().forEach(track => track.stop());
             qrStream = null;
         }
-        isScanning = false;
+        isQRScanning = false;
         overlay.style.display = 'none';
     }
 
     function tickQR() {
-        if(!isScanning) return;
-        if(video.readyState === video.HAVE_ENOUGH_DATA) {
+        if(!isQRScanning) return;
+        if(qrVideo.readyState === qrVideo.HAVE_ENOUGH_DATA) {
             const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
+            canvas.width = qrVideo.videoWidth;
+            canvas.height = qrVideo.videoHeight;
             const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(qrVideo, 0, 0, canvas.width, canvas.height);
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
             
             if(code) {
                 const numbers = code.data.match(/\d+/);
@@ -1064,7 +1585,7 @@
     // ===== EXPORT FUNCTIONS =====
     function exportToCSV() {
         if(appState.lecturas.length === 0) { 
-            alert("No hay datos para exportar"); 
+            showAlert('warning', 'No hay datos para exportar');
             return; 
         }
         
@@ -1080,18 +1601,13 @@
         
         const csvContent = "data:text/csv;charset=utf-8," + 
                           rows.map(row => row.map(field => `"${field}"`).join(",")).join("\n");
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `telares_texcorp_${appState.fecha}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        
+        downloadFile(csvContent, `telares_texcorp_${appState.fecha}.csv`);
     }
 
     function exportToExcel() {
         if(appState.lecturas.length === 0) { 
-            alert("No hay datos para exportar"); 
+            showAlert('warning', 'No hay datos para exportar');
             return; 
         }
         
@@ -1112,35 +1628,32 @@
         
         const blob = new Blob(['\ufeff' + table], { type: 'application/vnd.ms-excel' });
         const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `telares_texcorp_${appState.fecha}.xls`;
-        a.click();
+        
+        downloadFile(url, `telares_texcorp_${appState.fecha}.xls`);
         window.URL.revokeObjectURL(url);
     }
 
-    // ===== EVENT LISTENERS =====
-    elDate.addEventListener('change', (e) => { 
-        appState.fecha = e.target.value; 
-        renderPlant(); 
-    });
-    
-    elTurno.addEventListener('change', (e) => { 
-        appState.turno = e.target.value; 
-        renderPlant(); 
-    });
+    function downloadFile(content, filename) {
+        const link = document.createElement("a");
+        link.setAttribute("href", content);
+        link.setAttribute("download", filename);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
 
     // ===== INITIALIZATION =====
     function initializeApp() {
         renderPlant();
-        logToConsole('🚀 Sistema TEXCORP OCR Industrial iniciado correctamente.');
         
         // Update time every second
         setInterval(() => {
             const now = new Date();
-            document.getElementById('current-time').innerText = 
+            document.getElementById('current-time').textContent = 
                 now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
         }, 1000);
+        
+        console.log('🚀 TEXCORP Telares Pro initialized');
     }
 
     // Start the application

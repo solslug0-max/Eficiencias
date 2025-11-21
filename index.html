@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lectura de Telares - Texcorp 4.0 [ANÁLISIS PRECISO]</title>
+    <title>Telares - OCR REAL</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     
     <style>
@@ -88,14 +89,11 @@
         .full-width { grid-column: span 2; }
         textarea { width: 100%; height: 60px; padding: 8px; border: 1px solid #ccc; }
         
-        #qr-video-container { width: 100%; max-width: 400px; margin: 0 auto; display: none; position: relative; }
-        video { width: 100%; border-radius: 8px; }
-        
         .img-preview-container { margin-top: 10px; text-align: center; display: none; }
         .img-preview-container img { max-width: 100%; max-height: 250px; border-radius: 8px; border: 2px solid #ddd; }
         
         .ocr-controls {
-            background: linear-gradient(135deg, #6f42c1 0%, #5a359a 100%);
+            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
             color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;
         }
         .ocr-controls h4 {
@@ -136,29 +134,22 @@
             padding: 12px; margin: 10px 0; display: none;
         }
         
-        @media (max-width: 768px) {
-            .form-grid { grid-template-columns: 1fr; }
-            .img-preview-container img { max-height: 200px; }
-            .capture-buttons { justify-content: center; }
-            .btn-capture { flex: 1; min-width: 100px; text-align: center; }
-        }
-
-        .precise-indicator {
-            color: #6f42c1; font-weight: bold; font-size: 0.85rem; 
-            background: #f8f4ff; padding: 4px 8px; border-radius: 4px; display: inline-block;
+        .real-ocr-indicator {
+            color: #dc3545; font-weight: bold; font-size: 0.85rem; 
+            background: #f8d7da; padding: 4px 8px; border-radius: 4px; display: inline-block;
         }
         
         .progress-bar {
             width: 100%; height: 4px; background: #e9ecef; border-radius: 2px; overflow: hidden;
         }
         .progress-fill {
-            height: 100%; background: linear-gradient(90deg, #6f42c1, #5a359a);
+            height: 100%; background: linear-gradient(90deg, #dc3545, #c82333);
             width: 0%; transition: width 0.3s ease;
         }
         
-        .region-analysis {
-            background: #f8f9fa; border-left: 4px solid #6f42c1; margin: 5px 0; padding: 8px;
-            font-size: 0.8rem;
+        .text-found {
+            background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;
+            padding: 8px; margin: 5px 0; font-family: monospace; font-size: 0.8rem;
         }
     </style>
 </head>
@@ -166,8 +157,8 @@
 
     <header>
         <div>
-            <h3>Lectura de Telares 4.0 <span class="precise-indicator">🎯 ANÁLISIS PRECISO</span></h3>
-            <small style="opacity: 0.8;">Texcorp - Planta Lima</small>
+            <h3>Lectura de Telares <span class="real-ocr-indicator">👁️ OCR REAL</span></h3>
+            <small style="opacity: 0.8;">Tesseract.js - Lee texto real</small>
         </div>
         <div id="current-time" style="font-size: 1rem; font-weight: bold;">--:--</div>
     </header>
@@ -185,28 +176,15 @@
                 <option value="F">Festivo</option>
             </select>
         </div>
-        <button class="btn btn-blue" onclick="toggleQRScanner()">📷 Escanear QR Telar</button>
         
         <div style="flex-grow: 1;"></div>
         
         <button class="btn btn-green" onclick="exportToCSV()">CSV</button>
-        <button class="btn btn-green" onclick="exportToExcel()">Excel</button>
         <div style="margin-left: 15px; font-weight: bold; color: var(--primary-color);" id="progress-text">0/31</div>
     </div>
 
-    <div id="qr-overlay" class="modal-overlay" style="z-index: 1100;">
-        <div class="modal-content" style="background: transparent; box-shadow: none; text-align: center;">
-            <div id="qr-video-container" style="display: block;">
-                <video id="qr-video" playsinline></video>
-                <div style="margin-top: 10px; color: white; font-weight: bold;">Apunte al código QR del telar...</div>
-                <button class="btn btn-cancel" style="margin-top: 15px;" onclick="stopQRScanner()">Cerrar Cámara</button>
-            </div>
-        </div>
-    </div>
-
     <div class="plant-scroll-area">
-        <div class="plant-grid" id="plant-grid">
-            </div>
+        <div class="plant-grid" id="plant-grid"></div>
     </div>
 
     <div class="modal-overlay" id="modal-registro">
@@ -217,9 +195,9 @@
             <form id="form-lectura">
                 
                 <div class="ocr-controls">
-                    <h4>🎯 Análisis Preciso de Regiones</h4>
+                    <h4>👁️ OCR Real - Lee texto de verdad</h4>
                     <p style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 10px;">
-                        Analiza cada región por separado. Solo detecta lo que realmente está visible.
+                        Usa Tesseract.js para leer texto real de la imagen. NO inventa valores.
                     </p>
                     
                     <div class="capture-buttons">
@@ -227,7 +205,7 @@
                         <label for="inp-foto-ai" class="btn-capture">📷 Tomar Foto</label>
                         <input type="file" id="inp-foto-galeria" accept="image/*" style="display: none;">
                         <label for="inp-foto-galeria" class="btn-capture">🖼️ Galería</label>
-                        <button type="button" class="btn-capture" id="analyze-btn" onclick="runPreciseAnalysis()">🔬 Análisis Preciso</button>
+                        <button type="button" class="btn-capture" id="analyze-btn" onclick="runRealOCR()">👁️ Leer Texto</button>
                         <button type="button" class="btn-capture" onclick="enableManualInput()">✏️ Manual</button>
                         <button type="button" class="btn-capture" onclick="clearOCRData()">🗑️ Limpiar</button>
                     </div>
@@ -239,7 +217,7 @@
                 
                 <div id="processing-indicator" class="processing-indicator">
                     <div style="margin-bottom: 8px;">
-                        <span id="processing-text">Analizando imagen...</span>
+                        <span id="processing-text">Leyendo texto...</span>
                     </div>
                     <div class="progress-bar">
                         <div class="progress-fill" id="progress-fill"></div>
@@ -247,18 +225,18 @@
                 </div>
                 
                 <div id="analysis-details" class="analysis-details">
-                    <h6 style="margin-bottom: 8px;">🔬 Análisis Detallado:</h6>
-                    <div id="analysis-log"></div>
+                    <h6 style="margin-bottom: 8px;">👁️ Texto Encontrado:</h6>
+                    <div id="text-found"></div>
                 </div>
                 
                 <div id="results-container" class="results-container">
-                    <h5 style="color: #155724; margin-bottom: 8px;">✅ Valores Detectados:</h5>
+                    <h5 style="color: #155724; margin-bottom: 8px;">✅ Números Extraídos:</h5>
                     <div id="detected-data"></div>
                 </div>
                 
                 <div id="manual-input" class="manual-input">
                     <h5 style="margin-bottom: 8px;">✏️ Entrada Manual</h5>
-                    <p style="font-size: 0.9rem;">No se detectaron valores automáticamente o análisis no fue concluyente.</p>
+                    <p style="font-size: 0.9rem;">No se encontró texto o no se detectaron números.</p>
                 </div>
                 
                 <div class="form-grid">
@@ -293,7 +271,7 @@
     </div>
 
 <script>
-    // 1. DATOS y ESTADO
+    // DATOS y ESTADO
     const telares = [
         {id: 1, pos: [0,0]}, {id: 2, pos: [0,1]}, {id: 3, pos: [0,2]}, {id: 4, pos: [0,3]},
         {id: 5, pos: [1,0]}, {id: 6, pos: [1,1]}, {id: 7, pos: [1,2]}, {id: 8, pos: [1,3]},
@@ -311,7 +289,8 @@
         lecturas: JSON.parse(localStorage.getItem('lecturasDB_v2') || '[]'),
         operador: localStorage.getItem('lastOperador') || '',
         selectedTelar: null,
-        currentImageData: null
+        currentImageData: null,
+        accumulatedData: { rpm: null, picks: null }
     };
 
     // Elements
@@ -327,7 +306,7 @@
     elTurno.value = appState.turno;
     inpOperador.value = appState.operador;
 
-    // --- 2. RENDER PLANT ---
+    // --- RENDER PLANT ---
     function renderPlant() {
         const grid = document.getElementById('plant-grid');
         grid.innerHTML = '';
@@ -379,7 +358,7 @@
         document.getElementById('progress-text').innerText = `${completadas}/31`;
     }
 
-    // --- 3. MODAL CONTROLS ---
+    // --- MODAL CONTROLS ---
     function openModal(telarId) {
         appState.selectedTelar = telarId;
         const modal = document.getElementById('modal-registro');
@@ -398,6 +377,8 @@
             document.getElementById('inp-operador').value = appState.operador;
         }
         
+        // Reset accumulated data for new telar
+        appState.accumulatedData = { rpm: null, picks: null };
         clearOCRData();
         modal.style.display = 'flex';
     }
@@ -405,9 +386,10 @@
     function closeModal() {
         document.getElementById('modal-registro').style.display = 'none';
         appState.selectedTelar = null;
+        appState.accumulatedData = { rpm: null, picks: null };
     }
 
-    // --- 4. FORM SUBMISSION ---
+    // --- FORM SUBMISSION ---
     document.getElementById('form-lectura').addEventListener('submit', function(e) {
         e.preventDefault();
         
@@ -452,7 +434,7 @@
     elDate.addEventListener('change', (e) => { appState.fecha = e.target.value; renderPlant(); });
     elTurno.addEventListener('change', (e) => { appState.turno = e.target.value; renderPlant(); });
 
-    // --- 5. ANÁLISIS PRECISO ---
+    // --- OCR REAL CON TESSERACT ---
     
     // File input handlers
     inpFotoAI.addEventListener('change', handleImageSelection);
@@ -480,7 +462,7 @@
         document.getElementById('manual-input').style.display = 'none';
     }
 
-    async function runPreciseAnalysis() {
+    async function runRealOCR() {
         if (!appState.currentImageData) {
             alert("Por favor selecciona una imagen primero");
             return;
@@ -491,7 +473,7 @@
         const progressFill = document.getElementById('progress-fill');
         const analyzeBtn = document.getElementById('analyze-btn');
         const analysisDetails = document.getElementById('analysis-details');
-        const analysisLog = document.getElementById('analysis-log');
+        const textFoundEl = document.getElementById('text-found');
         
         hideAllResultSections();
         processingEl.style.display = 'block';
@@ -499,36 +481,51 @@
         analyzeBtn.disabled = true;
         
         try {
-            progressFill.style.width = '20%';
-            processingText.textContent = "Cargando imagen...";
-            analysisLog.innerHTML = 'Iniciando análisis de imagen...<br>';
+            progressFill.style.width = '25%';
+            processingText.textContent = "Inicializando Tesseract...";
             await delay(200);
             
             progressFill.style.width = '50%';
-            processingText.textContent = "Detectando regiones...";
+            processingText.textContent = "Leyendo texto de la imagen...";
             
-            // ANÁLISIS PRECISO DE REGIONES
-            const results = await performSeparateRegionAnalysis();
-            
-            // Mostrar log detallado
-            analysisLog.innerHTML += results.log.join('<br>');
+            // USAR TESSERACT.JS PARA LEER TEXTO REAL
+            const { data: { text } } = await Tesseract.recognize(
+                appState.currentImageData,
+                'spa', // Spanish language
+                {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            const progress = Math.min(50 + (m.progress * 40), 90);
+                            progressFill.style.width = progress + '%';
+                            processingText.textContent = `Leyendo texto... ${Math.round(m.progress * 100)}%`;
+                        }
+                    }
+                }
+            );
             
             progressFill.style.width = '100%';
-            processingText.textContent = "Análisis completado";
-            await delay(200);
+            processingText.textContent = "Extrayendo números...";
             
+            // Mostrar texto encontrado
+            textFoundEl.innerHTML = `<div class="text-found">${text.replace(/\n/g, '<br>')}</div>`;
+            
+            // EXTRAER NÚMEROS REALES DEL TEXTO
+            const numbers = extractRealNumbers(text);
+            
+            await delay(500);
             processingEl.style.display = 'none';
             
-            if (results.detections.length > 0) {
-                displayPreciseResults(results);
+            if (numbers.length > 0) {
+                displayRealResults(numbers, text);
+                updateAccumulatedData(numbers);
             } else {
-                displayNoDetectionFound(results.log);
+                displayNoNumbersFound(text);
             }
             
         } catch (error) {
-            console.error("Error:", error);
-            processingText.textContent = "Error en análisis";
-            analysisLog.innerHTML += `<span style="color: #dc3545;">ERROR: ${error.message}</span><br>`;
+            console.error("Error en OCR:", error);
+            processingText.textContent = "Error en OCR";
+            textFoundEl.innerHTML = `<span style="color: #dc3545;">ERROR: ${error.message}</span>`;
             setTimeout(() => {
                 processingEl.style.display = 'none';
                 enableManualInput();
@@ -539,295 +536,92 @@
         }
     }
 
-    async function performSeparateRegionAnalysis() {
-        return new Promise((resolve) => {
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0);
-                
-                const results = {
-                    detections: [],
-                    log: [`Imagen cargada: ${img.width}x${img.height}`]
-                };
-                
-                // Análisis independiente de regiones
-                const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                const analysis = analyzeSeparateRegions(imageData, canvas.width, canvas.height);
-                
-                results.log.push(...analysis.log);
-                results.detections = analysis.detections;
-                
-                resolve(results);
-            };
-            
-            img.onerror = function() {
-                resolve({ 
-                    detections: [], 
-                    log: ['Error: No se pudo cargar la imagen'] 
+    function extractRealNumbers(text) {
+        // Buscar patrones específicos en el texto
+        const numbers = [];
+        
+        // Limpiar texto
+        const cleanText = text.replace(/[^\w\s\d]/g, ' ').toLowerCase();
+        
+        // Buscar RPM
+        const rpmMatches = cleanText.match(/(\d+)\s*rpm/i);
+        if (rpmMatches) {
+            numbers.push({
+                type: 'rpm',
+                value: parseInt(rpmMatches[1]),
+                context: rpmMatches[0]
+            });
+        }
+        
+        // Buscar números grandes (posibles pasadas/contadores)
+        const largeNumbers = text.match(/\d{3,}/g);
+        if (largeNumbers) {
+            largeNumbers.forEach(num => {
+                const value = parseInt(num);
+                if (value > 100 && value < 10000000) { // Rango razonable
+                    numbers.push({
+                        type: 'counter',
+                        value: value,
+                        context: num
+                    });
+                }
+            });
+        }
+        
+        // Buscar porcentajes
+        const percentMatches = text.match(/(\d+(?:\.\d+)?)\s*%/g);
+        if (percentMatches) {
+            percentMatches.forEach(match => {
+                const value = parseFloat(match.replace('%', ''));
+                numbers.push({
+                    type: 'percentage',
+                    value: value,
+                    context: match
                 });
-            };
-            
-            img.src = appState.currentImageData;
-        });
+            });
+        }
+        
+        return numbers;
     }
 
-    function analyzeSeparateRegions(imageData, width, height) {
-        const results = { detections: [], log: [] };
-        const data = imageData.data;
-        
-        // 1. ANÁLISIS GENERAL DE LA IMAGEN
-        let greenPixels = 0;
-        let brightPixels = 0;
-        let totalPixels = width * height;
-        
-        for (let i = 0; i < data.length; i += 4) {
-            const r = data[i];
-            const g = data[i + 1];
-            const b = data[i + 2];
-            
-            if (g > r + 20 && g > b + 20 && g > 120) {
-                greenPixels++;
-            }
-            
-            if (r > 200 && g > 200 && b > 200) {
-                brightPixels++;
-            }
-        }
-        
-        const greenPercentage = (greenPixels / totalPixels) * 100;
-        const brightPercentage = (brightPixels / totalPixels) * 100;
-        
-        results.log.push(`Píxeles verdes: ${greenPercentage.toFixed(1)}%`);
-        results.log.push(`Píxeles brillantes: ${brightPercentage.toFixed(1)}%`);
-        
-        // 2. DETERMINAR TIPO DE PANTALLA
-        if (greenPercentage > 15) {
-            results.log.push('🟢 Pantalla Picanol verde detectada');
-            
-            // 3A. ANÁLIZAR REGIÓN IZQUIERDA (RPM) DE FORMA INDEPENDIENTE
-            const leftAnalysis = analyzeLeftRegionIndependent(imageData, width, height);
-            results.log.push('<div class="region-analysis">📍 REGIÓN IZQUIERDA (RPM):');
-            results.log.push(...leftAnalysis.log.map(l => `&nbsp;&nbsp;${l}`));
-            results.log.push('</div>');
-            
-            // 3B. ANÁLIZAR REGIÓN DERECHA (PASADAS) DE FORMA INDEPENDIENTE  
-            const rightAnalysis = analyzeRightRegionIndependent(imageData, width, height);
-            results.log.push('<div class="region-analysis">📍 REGIÓN DERECHA (PASADAS):');
-            results.log.push(...rightAnalysis.log.map(l => `&nbsp;&nbsp;${l}`));
-            results.log.push('</div>');
-            
-            // 4. AGREGAR DETECCIONES BASADAS EN EVIDENCIA INDEPENDIENTE
-            if (leftAnalysis.hasStrongRpmEvidence) {
-                results.detections.push({
-                    type: 'rpm',
-                    value: leftAnalysis.rpmValue,
-                    confidence: leftAnalysis.confidence,
-                    source: 'Región izquierda',
-                    evidence: leftAnalysis.evidence
-                });
-                results.log.push('✅ RPM detectado con evidencia sólida');
-            } else {
-                results.log.push('❌ No se detectó patrón de RPM claro');
-            }
-            
-            if (rightAnalysis.hasStrongCounterEvidence) {
-                results.detections.push({
-                    type: 'picks',
-                    value: rightAnalysis.counterValue,
-                    confidence: rightAnalysis.confidence,
-                    source: 'Región derecha',
-                    evidence: rightAnalysis.evidence
-                });
-                results.log.push('✅ Contador detectado con evidencia sólida');
-            } else {
-                results.log.push('❌ No se detectó contador claro en región derecha');
-            }
-            
-        } else {
-            results.log.push('❓ Tipo de pantalla no compatible con análisis automático');
-        }
-        
-        results.log.push(`Total detectado: ${results.detections.length} valores`);
-        
-        return results;
-    }
-
-    function analyzeLeftRegionIndependent(imageData, width, height) {
-        const results = { 
-            hasStrongRpmEvidence: false, 
-            rpmValue: null,
-            confidence: 0,
-            log: [], 
-            evidence: [] 
-        };
-        
-        // Analizar SOLO el tercio izquierdo
-        const leftWidth = Math.floor(width / 3);
-        results.log.push(`Analizando ${leftWidth}x${height} píxeles`);
-        
-        const data = imageData.data;
-        let darkTextPixels = 0;
-        let mediumContrastPixels = 0;
-        let totalLeftPixels = leftWidth * height;
-        
-        // Buscar patrones típicos de números grandes (RPM)
-        for (let y = 0; y < height; y++) {
-            for (let x = 0; x < leftWidth; x++) {
-                const i = (y * width + x) * 4;
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                
-                // Texto muy oscuro (números)
-                if (r < 80 && g < 80 && b < 80) {
-                    darkTextPixels++;
-                }
-                
-                // Contraste medio (bordes de números)
-                if (r > 80 && r < 150 && g > 80 && g < 150) {
-                    mediumContrastPixels++;
-                }
-            }
-        }
-        
-        const darkTextPercentage = (darkTextPixels / totalLeftPixels) * 100;
-        const contrastPercentage = (mediumContrastPixels / totalLeftPixels) * 100;
-        
-        results.log.push(`Texto oscuro: ${darkTextPercentage.toFixed(1)}%`);
-        results.log.push(`Contraste medio: ${contrastPercentage.toFixed(1)}%`);
-        
-        // CRITERIOS MÁS ESTRICTOS PARA DETECTAR RPM
-        if (darkTextPercentage > 3 && darkTextPercentage < 12 && contrastPercentage > 10) {
-            results.hasStrongRpmEvidence = true;
-            results.rpmValue = 450; // Valor detectado en tus imágenes
-            results.confidence = 80;
-            results.evidence.push(`${darkTextPercentage.toFixed(1)}% texto oscuro`);
-            results.evidence.push(`${contrastPercentage.toFixed(1)}% contraste`);
-            results.log.push('✅ Patrón RPM fuerte detectado');
-        } else if (darkTextPercentage > 1) {
-            results.log.push(`⚠️ Patrón débil (texto: ${darkTextPercentage.toFixed(1)}%, contraste: ${contrastPercentage.toFixed(1)}%)`);
-        } else {
-            results.log.push('❌ Sin evidencia de números grandes');
-        }
-        
-        return results;
-    }
-
-    function analyzeRightRegionIndependent(imageData, width, height) {
-        const results = { 
-            hasStrongCounterEvidence: false, 
-            counterValue: null,
-            confidence: 0,
-            log: [], 
-            evidence: [] 
-        };
-        
-        // Analizar SOLO el tercio derecho
-        const rightStart = Math.floor(width * 2 / 3);
-        const rightWidth = width - rightStart;
-        results.log.push(`Analizando ${rightWidth}x${height} píxeles`);
-        
-        const data = imageData.data;
-        let tableLines = 0;
-        let numberRegions = 0;
-        let structuralElements = 0;
-        let totalRightPixels = rightWidth * height;
-        
-        // Buscar evidencia específica de tabla con datos
-        for (let y = 0; y < height; y++) {
-            for (let x = rightStart; x < width; x++) {
-                const i = (y * width + x) * 4;
-                const r = data[i];
-                const g = data[i + 1];
-                const b = data[i + 2];
-                
-                // Líneas de tabla (grises/negras)
-                if (r < 100 && g < 100 && b < 100 && 
-                    Math.abs(r - g) < 15 && Math.abs(g - b) < 15) {
-                    tableLines++;
-                }
-                
-                // Números en tabla (texto muy oscuro)
-                if (r < 60 && g < 60 && b < 60) {
-                    numberRegions++;
-                }
-                
-                // Elementos estructurales (bordes, separadores)
-                if ((r < 120 && g < 120 && b < 120) ||
-                    (Math.abs(r - 128) < 20 && Math.abs(g - 128) < 20)) {
-                    structuralElements++;
-                }
-            }
-        }
-        
-        const tableLinesPercentage = (tableLines / totalRightPixels) * 100;
-        const numbersPercentage = (numberRegions / totalRightPixels) * 100;
-        const structuralPercentage = (structuralElements / totalRightPixels) * 100;
-        
-        results.log.push(`Líneas tabla: ${tableLinesPercentage.toFixed(1)}%`);
-        results.log.push(`Regiones números: ${numbersPercentage.toFixed(1)}%`);
-        results.log.push(`Estructura: ${structuralPercentage.toFixed(1)}%`);
-        
-        // CRITERIOS ESTRICTOS PARA DETECTAR TABLA CON PASADAS
-        // PRIORIDAD: Detectar "Pasadas" (253723) NO "Contador turno" (7692100)
-        if (tableLinesPercentage > 8 && numbersPercentage > 2 && structuralPercentage > 20) {
-            results.hasStrongCounterEvidence = true;
-            
-            // PRIORIZAR PASADAS sobre Contador turno
-            // Basado en tus imágenes:
-            // - Pasadas: 253723 (valor más pequeño, más común)
-            // - Contador turno: 7692100 (valor muy grande, menos relevante para producción)
-            
-            results.counterValue = 253723; // VALOR CORRECTO DE PASADAS
-            results.confidence = 80;
-            results.evidence.push(`${tableLinesPercentage.toFixed(1)}% líneas tabla`);
-            results.evidence.push(`${numbersPercentage.toFixed(1)}% números`);
-            results.evidence.push(`${structuralPercentage.toFixed(1)}% estructura`);
-            results.evidence.push('Detectando PASADAS (no contador turno)');
-            results.log.push('✅ Tabla con PASADAS detectada (253723)');
-        } else if (structuralPercentage > 5) {
-            results.log.push(`⚠️ Estructura parcial (líneas: ${tableLinesPercentage.toFixed(1)}%, números: ${numbersPercentage.toFixed(1)}%)`);
-        } else {
-            results.log.push('❌ Sin evidencia de tabla estructurada');
-        }
-        
-        return results;
-    }
-
-    function displayPreciseResults(results) {
+    function displayRealResults(numbers, fullText) {
         const resultsEl = document.getElementById('results-container');
         const detectedEl = document.getElementById('detected-data');
         
         let resultsHTML = '';
         
-        for (const detection of results.detections) {
-            if (detection.type === 'rpm') {
-                resultsHTML += `<div>🔄 <strong>RPM:</strong> ${detection.value} 
-                               <small>(${detection.confidence}% confianza - ${detection.source})</small></div>`;
-                document.getElementById('inp-rpm').value = detection.value;
-                document.getElementById('inp-rpm').style.backgroundColor = "#d4edda";
-            } else if (detection.type === 'picks') {
-                resultsHTML += `<div>📊 <strong>Pasadas:</strong> ${detection.value.toLocaleString()} 
-                               <small>(${detection.confidence}% confianza - ${detection.source})</small></div>`;
-                document.getElementById('inp-picks').value = detection.value;
-                document.getElementById('inp-picks').style.backgroundColor = "#d4edda";
+        numbers.forEach(num => {
+            if (num.type === 'rpm') {
+                resultsHTML += `<div>🔄 <strong>RPM:</strong> ${num.value} <small>(encontrado: "${num.context}")</small></div>`;
+            } else if (num.type === 'counter') {
+                resultsHTML += `<div>📊 <strong>Número:</strong> ${num.value.toLocaleString()} <small>(encontrado: "${num.context}")</small></div>`;
+            } else if (num.type === 'percentage') {
+                resultsHTML += `<div>📈 <strong>Porcentaje:</strong> ${num.value}% <small>(encontrado: "${num.context}")</small></div>`;
             }
-        }
-        
-        if (results.detections.length === 0) {
-            resultsHTML = '<div>❌ No se detectaron valores con suficiente evidencia</div>';
-        }
+        });
         
         detectedEl.innerHTML = resultsHTML;
         resultsEl.style.display = 'block';
     }
 
-    function displayNoDetectionFound(logMessages) {
+    function updateAccumulatedData(numbers) {
+        numbers.forEach(num => {
+            if (num.type === 'rpm') {
+                appState.accumulatedData.rpm = num.value;
+                document.getElementById('inp-rpm').value = num.value;
+                document.getElementById('inp-rpm').style.backgroundColor = "#d4edda";
+            } else if (num.type === 'counter') {
+                // Solo usar como pasadas si parece razonable para pasadas
+                if (num.value < 1000000) {
+                    appState.accumulatedData.picks = num.value;
+                    document.getElementById('inp-picks').value = num.value;
+                    document.getElementById('inp-picks').style.backgroundColor = "#d4edda";
+                }
+            }
+        });
+    }
+
+    function displayNoNumbersFound(text) {
         const manualEl = document.getElementById('manual-input');
         manualEl.style.display = 'block';
         
@@ -872,67 +666,7 @@
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // --- 6. QR SCANNER ---
-    let video = document.getElementById('qr-video');
-    let qrStream = null;
-    let isScanning = false;
-
-    async function toggleQRScanner() {
-        const overlay = document.getElementById('qr-overlay');
-        if(isScanning) return;
-
-        overlay.style.display = 'flex';
-        try {
-            qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
-            video.srcObject = qrStream;
-            video.setAttribute("playsinline", true);
-            video.play();
-            isScanning = true;
-            requestAnimationFrame(tickQR);
-        } catch(err) {
-            alert("No se pudo acceder a la cámara. Asegúrate de dar permisos.");
-            overlay.style.display = 'none';
-        }
-    }
-
-    function stopQRScanner() {
-        const overlay = document.getElementById('qr-overlay');
-        if(qrStream) {
-            qrStream.getTracks().forEach(track => track.stop());
-            qrStream = null;
-        }
-        isScanning = false;
-        overlay.style.display = 'none';
-    }
-
-    function tickQR() {
-        if(!isScanning) return;
-        if(video.readyState === video.HAVE_ENOUGH_DATA) {
-            const canvas = document.createElement("canvas");
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-            const ctx = canvas.getContext("2d");
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-            
-            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-            
-            if(code) {
-                const numbers = code.data.match(/\d+/);
-                if(numbers) {
-                    const id = parseInt(numbers[0]);
-                    if(telares.find(t => t.id === id)) {
-                        stopQRScanner();
-                        openModal(id);
-                        return;
-                    }
-                }
-            }
-        }
-        requestAnimationFrame(tickQR);
-    }
-
-    // --- 7. EXPORTACIÓN ---
+    // --- EXPORTACIÓN ---
     function exportToCSV() {
         if(appState.lecturas.length === 0) { alert("Sin datos"); return; }
         const rows = [["Fecha","Turno","Telar","RPM","Picks","Operador","Metros","Observaciones"]];
@@ -944,21 +678,6 @@
         link.setAttribute("download", "telares_texcorp.csv");
         document.body.appendChild(link);
         link.click();
-    }
-
-    function exportToExcel() {
-        if(appState.lecturas.length === 0) { alert("Sin datos"); return; }
-        let table = '<table border="1"><thead><tr><th>Fecha</th><th>Turno</th><th>Telar</th><th>RPM</th><th>Picks</th><th>Operador</th><th>Metros</th><th>Observaciones</th></tr></thead><tbody>';
-        appState.lecturas.forEach(l => {
-            table += `<tr><td>${l.fecha}</td><td>${l.turno}</td><td>${l.telarId}</td><td>${l.rpm}</td><td>${l.picks}</td><td>${l.operador}</td><td>${l.metros || ''}</td><td>${l.observaciones || ''}</td></tr>`;
-        });
-        table += '</tbody></table>';
-        const blob = new Blob(['\ufeff' + table], { type: 'application/vnd.ms-excel' });
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = "telares_texcorp.xls";
-        a.click();
     }
 
     // Reloj y Arranque

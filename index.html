@@ -3,7 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Lectura de Telares - TEXCORP Pro</title>
+    <title>TEXCORP Telares Pro</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="application-name" content="TEXCORP Telares">
+    <meta name="description" content="Sistema OCR para lectura de telares industriales TEXCORP">
+    <meta name="theme-color" content="#1e3a8a">
+    <meta name="background-color" content="#f8fafc">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="TEXCORP Telares">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- PWA Icons -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIiIGhlaWdodD0iMzIiIHZpZXdCb3g9IjAgMCAzMiAzMiIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNCIgZmlsbD0iIzFlM2E4YSIvPgo8cmVjdCB4PSI2IiB5PSI4IiB3aWR0aD0iMjAiIGhlaWdodD0iMTYiIHJ4PSIyIiBmaWxsPSJ3aGl0ZSIvPgo8cmVjdCB4PSI4IiB5PSIxMCIgd2lkdGg9IjQiIGhlaWdodD0iNCIgcng9IjEiIGZpbGw9IiMxZTNhOGEiLz4KPHJlY3QgeD0iMTQiIHk9IjEwIiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiByeD0iMSIgZmlsbD0iIzNiODJmNiIvPgo8cmVjdCB4PSIyMCIgeT0iMTAiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIHJ4PSIxIiBmaWxsPSIjMTBiOTgxIi8+CjxyZWN0IHg9IjgiIHk9IjE2IiB3aWR0aD0iNCIgaGVpZ2h0PSI0IiByeD0iMSIgZmlsbD0iI2Y1OWUwYiIvPgo8cmVjdCB4PSIxNCIgeT0iMTYiIHdpZHRoPSI0IiBoZWlnaHQ9IjQiIHJ4PSIxIiBmaWxsPSIjZWY0NDQ0Ii8+CjxyZWN0IHg9IjIwIiB5PSIxNiIgd2lkdGg9IjQiIGhlaWdodD0iNCIgcng9IjEiIGZpbGw9IiMwNmI2ZDQiLz4KPC9zdmc+Cg==">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgdmlld0JveD0iMCAwIDE4MCAxODAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxODAiIGhlaWdodD0iMTgwIiByeD0iMjAiIGZpbGw9IiMxZTNhOGEiLz4KPHJlY3QgeD0iMzAiIHk9IjQ1IiB3aWR0aD0iMTIwIiBoZWlnaHQ9IjkwIiByeD0iOCIgZmlsbD0id2hpdGUiLz4KPHJlY3QgeD0iNDUiIHk9IjYwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHJ4PSI0IiBmaWxsPSIjMWUzYThhIi8+CjxyZWN0IHg9IjcwIiB5PSI2MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iIzNiODJmNiIvPgo8cmVjdCB4PSI5NSIgeT0iNjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcng9IjQiIGZpbGw9IiMxMGI5ODEiLz4KPHJlY3QgeD0iNDUiIHk9IjkwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHJ4PSI0IiBmaWxsPSIjZjU5ZTBiIi8+CjxyZWN0IHg9IjcwIiB5PSI5MCIgd2lkdGg9IjIwIiBoZWlnaHQ9IjIwIiByeD0iNCIgZmlsbD0iI2VmNDQ0NCIvPgo8cmVjdCB4PSI5NSIgeT0iOTAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcng9IjQiIGZpbGw9IiMwNmI2ZDQiLz4KPC9zdmc+Cg==">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="./manifest.json">
     
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
     <script src="https://unpkg.com/tesseract.js@5/dist/tesseract.min.js"></script>
@@ -1653,6 +1671,132 @@
         }, 1000);
         
         console.log('🚀 TEXCORP Telares Pro initialized');
+        
+        // ===== PWA FEATURES =====
+        registerServiceWorker();
+        setupPWAInstallPrompt();
+    }
+
+    // ===== PWA SERVICE WORKER =====
+    async function registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+            try {
+                const registration = await navigator.serviceWorker.register('./sw.js');
+                console.log('✅ Service Worker registrado:', registration.scope);
+                
+                // Auto-actualizar cuando hay nueva versión
+                registration.addEventListener('updatefound', () => {
+                    const newWorker = registration.installing;
+                    newWorker.addEventListener('statechange', () => {
+                        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            console.log('🔄 Nueva versión disponible. Recargando...');
+                            if (confirm('Nueva versión disponible. ¿Actualizar ahora?')) {
+                                window.location.reload();
+                            }
+                        }
+                    });
+                });
+            } catch (error) {
+                console.error('❌ Error registrando Service Worker:', error);
+            }
+        }
+    }
+
+    // ===== PWA INSTALLATION =====
+    let deferredPrompt = null;
+
+    function setupPWAInstallPrompt() {
+        // Detectar cuando se puede instalar
+        window.addEventListener('beforeinstallprompt', (e) => {
+            console.log('📱 PWA lista para instalar');
+            e.preventDefault();
+            deferredPrompt = e;
+            showInstallButton();
+        });
+
+        // Detectar cuando se instala
+        window.addEventListener('appinstalled', () => {
+            console.log('✅ TEXCORP App instalada exitosamente');
+            hideInstallButton();
+            deferredPrompt = null;
+            
+            // Pequeña celebración
+            showAlert('success', '🎉 ¡App instalada! Ya puedes usarla desde tu pantalla de inicio');
+        });
+    }
+
+    function showInstallButton() {
+        // Crear botón flotante de instalación
+        if (!document.getElementById('pwa-install-btn')) {
+            const installBtn = document.createElement('button');
+            installBtn.id = 'pwa-install-btn';
+            installBtn.className = 'btn btn-blue';
+            installBtn.innerHTML = '📱 Instalar App';
+            
+            // Estilos del botón flotante
+            installBtn.style.cssText = `
+                position: fixed !important;
+                bottom: 20px !important;
+                right: 20px !important;
+                z-index: 9999 !important;
+                border-radius: 25px !important;
+                padding: 12px 20px !important;
+                box-shadow: 0 6px 20px rgba(30, 58, 138, 0.4) !important;
+                font-size: 0.9rem !important;
+                animation: pulse 2s infinite !important;
+                backdrop-filter: blur(10px) !important;
+            `;
+            
+            // Animación CSS
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes pulse {
+                    0%, 100% { transform: scale(1); }
+                    50% { transform: scale(1.05); }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            installBtn.addEventListener('click', installPWA);
+            document.body.appendChild(installBtn);
+            
+            // Auto-ocultar después de 15 segundos
+            setTimeout(() => {
+                if (installBtn.parentNode) {
+                    installBtn.style.opacity = '0.7';
+                }
+            }, 15000);
+        }
+    }
+
+    function hideInstallButton() {
+        const installBtn = document.getElementById('pwa-install-btn');
+        if (installBtn) {
+            installBtn.style.transform = 'scale(0)';
+            installBtn.style.opacity = '0';
+            setTimeout(() => installBtn.remove(), 300);
+        }
+    }
+
+    async function installPWA() {
+        if (!deferredPrompt) {
+            showAlert('warning', 'La instalación no está disponible en este momento');
+            return;
+        }
+        
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        
+        if (outcome === 'accepted') {
+            console.log('✅ Usuario aceptó instalar TEXCORP App');
+            showAlert('success', '⏳ Instalando app...');
+        } else {
+            console.log('❌ Usuario rechazó instalar app');
+            showAlert('info', 'Puedes instalar la app más tarde desde el menú del navegador');
+        }
+        
+        deferredPrompt = null;
+        hideInstallButton();
     }
 
     // Start the application

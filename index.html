@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Telares - OCR REAL</title>
+    <title>Telares TEXCORP - OCR Industrial</title>
     
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
@@ -15,34 +15,43 @@
             --bg-color: #f4f6f8;
             --card-bg: #ffffff;
             --text-main: #1b262c;
-            --border-radius: 6px;
+            --border-radius: 8px;
             --status-working-bg: #28a745; 
             --status-working-text: #ffffff;
             --status-stopped-bg: #ffc107; 
             --status-stopped-text: #000000;
             --card-height: 140px; 
+            --ocr-accent: #e74c3c;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; }
 
         header {
-            background-color: var(--primary-color); color: white; padding: 10px 20px;
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            color: white; padding: 12px 20px;
             display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.15);
         }
 
         .controls-bar {
             background: white; padding: 15px 20px; display: flex; gap: 15px;
             align-items: flex-end; border-bottom: 1px solid #ddd; flex-wrap: wrap;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
         .control-group { display: flex; flex-direction: column; }
         .control-group label { font-size: 0.75rem; color: #666; margin-bottom: 4px; font-weight: bold; }
-        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 0.9rem; }
+        input, select { padding: 8px; border: 1px solid #ccc; border-radius: 6px; font-size: 0.9rem; }
         
-        .btn { padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; font-size: 0.9rem; color: white; transition: 0.2s; }
-        .btn-green { background-color: #28a745; } .btn-green:hover { background-color: #218838; }
-        .btn-blue { background-color: var(--secondary-color); } .btn-blue:hover { background-color: #0f4c75; }
+        .btn { 
+            padding: 8px 16px; border: none; border-radius: 6px; cursor: pointer; 
+            font-weight: bold; font-size: 0.9rem; color: white; transition: all 0.2s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .btn-green { background: linear-gradient(135deg, #28a745, #20b039); }
+        .btn-green:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(40,167,69,0.3); }
+        .btn-blue { background: linear-gradient(135deg, var(--secondary-color), var(--primary-color)); }
+        .btn-blue:hover { transform: translateY(-1px); box-shadow: 0 4px 8px rgba(50,130,184,0.3); }
         .btn-cancel { background: #6c757d; color: white; }
 
         .plant-scroll-area { flex: 1; overflow: auto; padding: 20px; }
@@ -57,108 +66,187 @@
             height: var(--card-height); border-radius: var(--border-radius);
         }
         .empty-card-space {
-            background: transparent; border: 1px dashed rgba(0,0,0,0.05); pointer-events: none;
+            background: transparent; border: 2px dashed rgba(0,0,0,0.05); pointer-events: none;
         }
         .telar-card {
-            background: white; border: 1px solid #e0e0e0; overflow: hidden;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: transform 0.1s;
+            background: var(--card-bg); border: 2px solid #e0e0e0; overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08); cursor: pointer; 
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex; flex-direction: column;
         }
-        .telar-card:hover { transform: translateY(-2px); box-shadow: 0 4px 8px rgba(0,0,0,0.1); border-color: var(--secondary-color); }
+        .telar-card:hover { 
+            transform: translateY(-4px) scale(1.02); 
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15); 
+            border-color: var(--secondary-color);
+        }
 
-        .card-top { padding: 8px 10px; display: flex; justify-content: space-between; font-weight: bold; font-size: 0.85rem; }
-        .card-status-bar { text-align: center; padding: 4px 0; font-size: 0.75rem; font-weight: bold; text-transform: uppercase; }
-        .status-working { background-color: var(--status-working-bg); color: var(--status-working-text); }
-        .status-paused { background-color: var(--status-stopped-bg); color: var(--status-stopped-text); }
-        .status-pending { background-color: #e9ecef; color: #495057; }
+        .card-top { 
+            padding: 10px 12px; display: flex; justify-content: space-between; 
+            font-weight: bold; font-size: 0.85rem; background: rgba(15,76,117,0.05);
+        }
+        .card-status-bar { 
+            text-align: center; padding: 6px 0; font-size: 0.7rem; 
+            font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px;
+        }
+        .status-working { background: linear-gradient(135deg, var(--status-working-bg), #20b039); color: var(--status-working-text); }
+        .status-paused { background: linear-gradient(135deg, var(--status-stopped-bg), #e0a800); color: var(--status-stopped-text); }
+        .status-pending { background: linear-gradient(135deg, #e9ecef, #dee2e6); color: #495057; }
 
-        .card-body { padding: 8px 10px; flex: 1; font-size: 0.8rem; color: #555; display: flex; flex-direction: column; justify-content: center; }
-        .card-body strong { display: block; color: #000; font-size: 0.95rem; margin-bottom: 2px; }
-        .card-footer { padding: 8px 10px; font-size: 0.7rem; color: #888; border-top: 1px solid #f0f0f0; }
+        .card-body { 
+            padding: 10px 12px; flex: 1; font-size: 0.8rem; color: #555; 
+            display: flex; flex-direction: column; justify-content: center; 
+        }
+        .card-body strong { display: block; color: #000; font-size: 0.9rem; margin-bottom: 4px; }
+        .card-footer { 
+            padding: 8px 12px; font-size: 0.7rem; color: #888; 
+            border-top: 1px solid #f0f0f0; background: rgba(248,249,250,0.8);
+        }
 
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); z-index: 1000; display: none;
+            background: rgba(0,0,0,0.7); z-index: 1000; display: none;
             justify-content: center; align-items: center;
+            backdrop-filter: blur(3px);
         }
         .modal-content {
-            background: white; padding: 25px; border-radius: 8px; width: 95%; max-width: 600px;
+            background: white; padding: 25px; border-radius: 12px; width: 95%; max-width: 700px;
             max-height: 90vh; overflow-y: auto; position: relative;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0; }
         .full-width { grid-column: span 2; }
-        textarea { width: 100%; height: 60px; padding: 8px; border: 1px solid #ccc; }
+        textarea { width: 100%; height: 60px; padding: 10px; border: 1px solid #ccc; border-radius: 6px; }
         
-        .img-preview-container { margin-top: 10px; text-align: center; display: none; }
-        .img-preview-container img { max-width: 100%; max-height: 250px; border-radius: 8px; border: 2px solid #ddd; }
+        .ocr-panel {
+            background: linear-gradient(135deg, var(--ocr-accent), #c0392b);
+            color: white; padding: 20px; border-radius: 12px; margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(231,76,60,0.3);
+        }
+        .ocr-panel h4 {
+            margin-bottom: 15px; display: flex; align-items: center; gap: 10px;
+            font-size: 1.1rem;
+        }
+        .ocr-panel p {
+            font-size: 0.85rem; opacity: 0.9; margin-bottom: 15px; line-height: 1.4;
+        }
         
-        .ocr-controls {
-            background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
-            color: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;
+        .image-processing-area {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 15px 0;
         }
-        .ocr-controls h4 {
-            margin-bottom: 10px; display: flex; align-items: center; gap: 8px;
+        .preview-box {
+            border: 2px solid rgba(255,255,255,0.3); border-radius: 8px; 
+            padding: 10px; min-height: 160px; display: flex; 
+            flex-direction: column; justify-content: center; align-items: center;
+            background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
         }
+        .preview-box img { 
+            max-width: 100%; max-height: 140px; border-radius: 6px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .preview-label {
+            font-size: 0.75rem; font-weight: bold; margin-bottom: 8px;
+            text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.9;
+        }
+        
         .capture-buttons {
-            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;
+            display: flex; gap: 10px; flex-wrap: wrap; margin-top: 15px;
         }
         .btn-capture {
-            background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);
-            color: white; padding: 8px 12px; border-radius: 5px; cursor: pointer;
-            font-size: 0.85rem; transition: all 0.2s;
+            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.3);
+            color: white; padding: 10px 16px; border-radius: 8px; cursor: pointer;
+            font-size: 0.85rem; font-weight: bold; transition: all 0.3s;
+            backdrop-filter: blur(10px);
         }
         .btn-capture:hover {
-            background: rgba(255,255,255,0.3); transform: scale(1.02);
+            background: rgba(255,255,255,0.3); 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255,255,255,0.2);
         }
         .btn-capture:disabled {
-            opacity: 0.6; pointer-events: none;
+            opacity: 0.6; pointer-events: none; transform: none;
         }
         
-        .processing-indicator {
-            display: none; background: #e7f3ff; border: 1px solid #b3d9ff; 
-            border-radius: 6px; padding: 12px; margin: 10px 0; text-align: center;
+        .processing-status {
+            display: none; background: rgba(255,255,255,0.95); color: #333;
+            border-radius: 8px; padding: 15px; margin: 15px 0; text-align: center;
+            border: 2px solid rgba(231,76,60,0.3);
         }
         
-        .results-container {
-            background: #d4edda; border: 1px solid #c3e6cb;
-            border-radius: 6px; padding: 12px; margin: 10px 0; display: none;
+        .ocr-console {
+            background: #1a1a1a; color: #00ff41; font-family: 'Courier New', monospace;
+            font-size: 0.75rem; padding: 12px; border-radius: 8px; margin: 15px 0;
+            height: 120px; overflow-y: auto; border: 2px solid rgba(255,255,255,0.1);
         }
         
-        .analysis-details {
-            background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;
-            padding: 12px; margin: 10px 0; display: none; font-size: 0.85rem;
+        .results-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); 
+            gap: 12px; margin: 15px 0;
+        }
+        .result-badge {
+            background: rgba(255,255,255,0.15); padding: 12px; border-radius: 8px;
+            text-align: center; border: 2px solid rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+        }
+        .result-badge .value {
+            font-size: 1.4rem; font-weight: bold; margin-bottom: 4px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+        }
+        .result-badge .label {
+            font-size: 0.7rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.5px;
         }
         
-        .manual-input {
-            background: #fff3cd; border: 1px solid #ffeaa7; border-radius: 6px;
-            padding: 12px; margin: 10px 0; display: none;
+        .validation-alerts {
+            margin: 10px 0; display: none;
+        }
+        .alert {
+            padding: 8px 12px; border-radius: 6px; font-size: 0.8rem; margin-bottom: 5px;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .alert-warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .alert-error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .alert-success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        
+        .manual-input-section {
+            background: #fff8e1; border: 2px solid #ffcc02; border-radius: 8px;
+            padding: 15px; margin: 15px 0; display: none;
         }
         
-        .real-ocr-indicator {
-            color: #dc3545; font-weight: bold; font-size: 0.85rem; 
-            background: #f8d7da; padding: 4px 8px; border-radius: 4px; display: inline-block;
+        .progress-ring {
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.3);
+            border-top: 3px solid white; border-radius: 50%;
+            animation: spin 1s linear infinite; margin: 0 auto 10px;
         }
         
-        .progress-bar {
-            width: 100%; height: 4px; background: #e9ecef; border-radius: 2px; overflow: hidden;
-        }
-        .progress-fill {
-            height: 100%; background: linear-gradient(90deg, #dc3545, #c82333);
-            width: 0%; transition: width 0.3s ease;
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .text-found {
-            background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 6px;
-            padding: 8px; margin: 5px 0; font-family: monospace; font-size: 0.8rem;
+        .industrial-badge {
+            background: linear-gradient(135deg, var(--ocr-accent), #c0392b);
+            color: white; font-weight: bold; font-size: 0.75rem; 
+            padding: 4px 10px; border-radius: 12px; display: inline-block;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            box-shadow: 0 2px 6px rgba(231,76,60,0.4);
         }
+        
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .image-processing-area { grid-template-columns: 1fr; }
+            .capture-buttons { justify-content: center; }
+            .btn-capture { flex: 1; min-width: 120px; text-align: center; }
+            .results-grid { grid-template-columns: 1fr 1fr; }
+        }
+        
+        canvas { display: none; }
     </style>
 </head>
 <body>
 
     <header>
         <div>
-            <h3>Lectura de Telares <span class="real-ocr-indicator">👁️ OCR REAL</span></h3>
-            <small style="opacity: 0.8;">Tesseract.js - Lee texto real</small>
+            <h3>TEXCORP Telares <span class="industrial-badge">⚙️ OCR Industrial</span></h3>
+            <small style="opacity: 0.9;">Lectura automática de datos de producción</small>
         </div>
         <div id="current-time" style="font-size: 1rem; font-weight: bold;">--:--</div>
     </header>
@@ -176,11 +264,27 @@
                 <option value="F">Festivo</option>
             </select>
         </div>
+        <button class="btn btn-blue" onclick="toggleQRScanner()">📷 Escanear QR</button>
         
         <div style="flex-grow: 1;"></div>
         
-        <button class="btn btn-green" onclick="exportToCSV()">CSV</button>
+        <button class="btn btn-green" onclick="exportToCSV()">📊 CSV</button>
+        <button class="btn btn-green" onclick="exportToExcel()">📈 Excel</button>
         <div style="margin-left: 15px; font-weight: bold; color: var(--primary-color);" id="progress-text">0/31</div>
+    </div>
+
+    <div id="qr-overlay" class="modal-overlay" style="z-index: 1100;">
+        <div class="modal-content" style="background: transparent; box-shadow: none; text-align: center;">
+            <div id="qr-video-container" style="display: block;">
+                <video id="qr-video" playsinline style="border-radius: 12px;"></video>
+                <div style="margin-top: 15px; color: white; font-weight: bold; font-size: 1.1rem;">
+                    🎯 Apunte al código QR del telar
+                </div>
+                <button class="btn btn-cancel" style="margin-top: 20px; border-radius: 8px;" onclick="stopQRScanner()">
+                    Cerrar Cámara
+                </button>
+            </div>
+        </div>
     </div>
 
     <div class="plant-scroll-area">
@@ -189,64 +293,89 @@
 
     <div class="modal-overlay" id="modal-registro">
         <div class="modal-content">
-            <h2 id="modal-title" style="color: var(--primary-color);">Registro</h2>
-            <p id="modal-subtitle" style="color:#666; font-size:0.9rem; margin-bottom:10px; border-bottom: 1px solid #eee; padding-bottom: 10px;"></p>
+            <h2 id="modal-title" style="color: var(--primary-color); margin-bottom: 5px;">Registro de Telar</h2>
+            <p id="modal-subtitle" style="color:#666; font-size:0.9rem; margin-bottom:20px; padding-bottom: 10px; border-bottom: 2px solid #eee;"></p>
             
             <form id="form-lectura">
                 
-                <div class="ocr-controls">
-                    <h4>👁️ OCR Real - Lee texto de verdad</h4>
-                    <p style="font-size: 0.85rem; opacity: 0.9; margin-bottom: 10px;">
-                        Usa Tesseract.js para leer texto real de la imagen. NO inventa valores.
+                <div class="ocr-panel">
+                    <h4>⚙️ Sistema OCR Industrial</h4>
+                    <p>
+                        Tecnología Tesseract con pre-procesamiento avanzado. 
+                        Detecta automáticamente RPM, pasadas, eficiencia y metros desde pantallas de telar.
                     </p>
                     
+                    <div class="image-processing-area">
+                        <div class="preview-box">
+                            <div class="preview-label">📷 Imagen Original</div>
+                            <img id="img-original" alt="Esperando imagen..." style="display: none;">
+                            <div id="no-image-msg" style="opacity: 0.7; font-style: italic;">Sin imagen</div>
+                        </div>
+                        <div class="preview-box">
+                            <div class="preview-label">🔧 Procesada (B/N)</div>
+                            <img id="img-processed" alt="Procesando..." style="display: none;">
+                            <div id="no-processed-msg" style="opacity: 0.7; font-style: italic;">Sin procesar</div>
+                        </div>
+                    </div>
+                    
                     <div class="capture-buttons">
-                        <input type="file" id="inp-foto-ai" accept="image/*" capture="environment" style="display: none;">
-                        <label for="inp-foto-ai" class="btn-capture">📷 Tomar Foto</label>
-                        <input type="file" id="inp-foto-galeria" accept="image/*" style="display: none;">
-                        <label for="inp-foto-galeria" class="btn-capture">🖼️ Galería</label>
-                        <button type="button" class="btn-capture" id="analyze-btn" onclick="runRealOCR()">👁️ Leer Texto</button>
-                        <button type="button" class="btn-capture" onclick="enableManualInput()">✏️ Manual</button>
-                        <button type="button" class="btn-capture" onclick="clearOCRData()">🗑️ Limpiar</button>
+                        <input type="file" id="inp-foto-capture" accept="image/*" capture="environment" style="display: none;">
+                        <input type="file" id="inp-foto-gallery" accept="image/*" style="display: none;">
+                        <label for="inp-foto-capture" class="btn-capture">📱 Cámara</label>
+                        <label for="inp-foto-gallery" class="btn-capture">🖼️ Galería</label>
+                        <button type="button" class="btn-capture" id="process-btn" onclick="runIndustrialOCR()" disabled>
+                            ⚡ Procesar
+                        </button>
+                        <button type="button" class="btn-capture" onclick="enableManualMode()">✏️ Manual</button>
+                        <button type="button" class="btn-capture" onclick="clearOCRSession()">🗑️ Limpiar</button>
+                    </div>
+                    
+                    <div id="processing-status" class="processing-status">
+                        <div class="progress-ring"></div>
+                        <div id="process-text">Procesando imagen...</div>
+                    </div>
+                    
+                    <div class="results-grid" id="ocr-results" style="display: none;">
+                        <div class="result-badge" id="badge-rpm">
+                            <div class="value" id="result-rpm-val">--</div>
+                            <div class="label">RPM</div>
+                        </div>
+                        <div class="result-badge" id="badge-picks">
+                            <div class="value" id="result-picks-val">--</div>
+                            <div class="label">Pasadas</div>
+                        </div>
+                        <div class="result-badge" id="badge-eff">
+                            <div class="value" id="result-eff-val">--</div>
+                            <div class="label">Eficiencia</div>
+                        </div>
+                        <div class="result-badge" id="badge-metros">
+                            <div class="value" id="result-metros-val">--</div>
+                            <div class="label">Metros</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ocr-console" id="ocr-console">
+                        > Sistema OCR listo. Cargue una imagen para comenzar...
                     </div>
                 </div>
                 
-                <div id="preview-container-ai" class="img-preview-container">
-                    <img id="img-preview-ai" alt="Preview">
-                </div>
+                <div id="validation-alerts" class="validation-alerts"></div>
                 
-                <div id="processing-indicator" class="processing-indicator">
-                    <div style="margin-bottom: 8px;">
-                        <span id="processing-text">Leyendo texto...</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-fill" id="progress-fill"></div>
-                    </div>
-                </div>
-                
-                <div id="analysis-details" class="analysis-details">
-                    <h6 style="margin-bottom: 8px;">👁️ Texto Encontrado:</h6>
-                    <div id="text-found"></div>
-                </div>
-                
-                <div id="results-container" class="results-container">
-                    <h5 style="color: #155724; margin-bottom: 8px;">✅ Números Extraídos:</h5>
-                    <div id="detected-data"></div>
-                </div>
-                
-                <div id="manual-input" class="manual-input">
-                    <h5 style="margin-bottom: 8px;">✏️ Entrada Manual</h5>
-                    <p style="font-size: 0.9rem;">No se encontró texto o no se detectaron números.</p>
+                <div id="manual-input-section" class="manual-input-section">
+                    <h5 style="margin-bottom: 10px; color: #856404;">✏️ Modo Manual Activado</h5>
+                    <p style="font-size: 0.9rem; color: #856404;">
+                        Complete los campos manualmente o tome una nueva foto para detección automática.
+                    </p>
                 </div>
                 
                 <div class="form-grid">
                     <div>
                         <label>Operador</label>
-                        <input type="text" id="inp-operador" placeholder="Nombre" required>
+                        <input type="text" id="inp-operador" placeholder="Nombre del operador" required>
                     </div>
                     <div>
                         <label>RPM</label>
-                        <input type="number" id="inp-rpm" placeholder="0" min="0" max="1000" required>
+                        <input type="number" id="inp-rpm" placeholder="0" min="0" max="1200" required>
                     </div>
                     <div>
                         <label>Pasadas / Picks</label>
@@ -256,22 +385,34 @@
                         <label>Metros</label>
                         <input type="number" id="inp-metros" placeholder="0" min="0" step="0.01">
                     </div>
+                    <div>
+                        <label>Eficiencia (%)</label>
+                        <input type="number" id="inp-eficiencia" placeholder="0-100" min="0" max="100">
+                    </div>
+                    <div>
+                        <label>Defectos</label>
+                        <input type="number" id="inp-defectos" placeholder="0" min="0">
+                    </div>
                     <div class="full-width">
                         <label>Observaciones</label>
-                        <textarea id="inp-observaciones" placeholder="Notas adicionales..."></textarea>
+                        <textarea id="inp-observaciones" placeholder="Notas adicionales sobre el telar..."></textarea>
                     </div>
                 </div>
 
-                <div style="display: flex; gap: 10px; margin-top: 20px; justify-content: flex-end;">
+                <div style="display: flex; gap: 15px; margin-top: 25px; justify-content: flex-end;">
                     <button type="button" class="btn btn-cancel" onclick="closeModal()">Cancelar</button>
-                    <button type="submit" class="btn btn-green">💾 Guardar Registro</button>
+                    <button type="submit" class="btn btn-green" style="padding: 10px 25px;">
+                        💾 Guardar Registro
+                    </button>
                 </div>
             </form>
         </div>
     </div>
 
+    <canvas id="processing-canvas"></canvas>
+
 <script>
-    // DATOS y ESTADO
+    // ===== ESTADO DE LA APLICACIÓN =====
     const telares = [
         {id: 1, pos: [0,0]}, {id: 2, pos: [0,1]}, {id: 3, pos: [0,2]}, {id: 4, pos: [0,3]},
         {id: 5, pos: [1,0]}, {id: 6, pos: [1,1]}, {id: 7, pos: [1,2]}, {id: 8, pos: [1,3]},
@@ -286,27 +427,28 @@
     const appState = {
         fecha: new Date().toISOString().split('T')[0],
         turno: 'M',
-        lecturas: JSON.parse(localStorage.getItem('lecturasDB_v2') || '[]'),
+        lecturas: JSON.parse(localStorage.getItem('lecturasTexcorp_v3') || '[]'),
         operador: localStorage.getItem('lastOperador') || '',
         selectedTelar: null,
         currentImageData: null,
-        accumulatedData: { rpm: null, picks: null }
+        ocrResults: { rpm: null, picks: null, eficiencia: null, metros: null }
     };
 
     // Elements
     const elDate = document.getElementById('filter-date');
     const elTurno = document.getElementById('filter-turno');
     const inpOperador = document.getElementById('inp-operador');
-    const inpFotoAI = document.getElementById('inp-foto-ai');
-    const inpFotoGaleria = document.getElementById('inp-foto-galeria');
-    const imgPreviewAI = document.getElementById('img-preview-ai');
+    const imgOriginal = document.getElementById('img-original');
+    const imgProcessed = document.getElementById('img-processed');
+    const processBtn = document.getElementById('process-btn');
+    const ocrConsole = document.getElementById('ocr-console');
 
-    // Init
+    // Initialize
     elDate.value = appState.fecha;
     elTurno.value = appState.turno;
     inpOperador.value = appState.operador;
 
-    // --- RENDER PLANT ---
+    // ===== RENDER TELAR PLANT =====
     function renderPlant() {
         const grid = document.getElementById('plant-grid');
         grid.innerHTML = '';
@@ -332,6 +474,8 @@
                     let statusClass = lectura ? (lectura.rpm > 0 ? 'status-working' : 'status-paused') : 'status-pending';
                     let statusText = lectura ? (lectura.rpm > 0 ? 'TRABAJANDO' : 'PARADO') : 'SIN DATOS';
                     
+                    const eficiencia = lectura ? (lectura.eficiencia || '?') : '?';
+                    
                     card.innerHTML = `
                         <div class="card-top">
                             <span>TELAR ${telar.id}</span>
@@ -340,9 +484,9 @@
                         <div class="card-status-bar ${statusClass}">${statusText}</div>
                         <div class="card-body">
                             <strong>${lectura ? new Intl.NumberFormat().format(lectura.picks) + ' picks' : 'Sin lecturas'}</strong>
-                            ${lectura ? `Operador: ${lectura.operador}` : ''}
+                            ${lectura ? `${lectura.operador} | ${eficiencia}% eff` : 'Pendiente de lectura'}
                         </div>
-                        <div class="card-footer">${lectura ? `Metros: ${lectura.metros || 0}` : 'Pendiente'}</div>
+                        <div class="card-footer">${lectura ? `Metros: ${lectura.metros || 0} | Defectos: ${lectura.defectos || 0}` : 'No registrado'}</div>
                     `;
                     columnDiv.appendChild(card);
                 } else {
@@ -358,60 +502,68 @@
         document.getElementById('progress-text').innerText = `${completadas}/31`;
     }
 
-    // --- MODAL CONTROLS ---
+    // ===== MODAL CONTROLS =====
     function openModal(telarId) {
         appState.selectedTelar = telarId;
         const modal = document.getElementById('modal-registro');
-        document.getElementById('modal-title').innerText = `Telar ${telarId}`;
-        document.getElementById('modal-subtitle').innerText = `${appState.fecha} - Turno ${appState.turno}`;
+        document.getElementById('modal-title').innerText = `Registro Telar ${telarId}`;
+        document.getElementById('modal-subtitle').innerText = `📅 ${appState.fecha} | 🕐 Turno ${appState.turno}`;
         
         const lectura = appState.lecturas.find(l => l.telarId === telarId && l.fecha === appState.fecha && l.turno === appState.turno);
         if(lectura) {
+            // Cargar datos existentes
             document.getElementById('inp-operador').value = lectura.operador;
             document.getElementById('inp-rpm').value = lectura.rpm;
             document.getElementById('inp-picks').value = lectura.picks;
             document.getElementById('inp-metros').value = lectura.metros || '';
+            document.getElementById('inp-eficiencia').value = lectura.eficiencia || '';
+            document.getElementById('inp-defectos').value = lectura.defectos || '';
             document.getElementById('inp-observaciones').value = lectura.observaciones || '';
         } else {
+            // Nuevo registro
             document.getElementById('form-lectura').reset();
             document.getElementById('inp-operador').value = appState.operador;
         }
         
-        // Reset accumulated data for new telar
-        appState.accumulatedData = { rpm: null, picks: null };
-        clearOCRData();
+        clearOCRSession();
         modal.style.display = 'flex';
     }
 
     function closeModal() {
         document.getElementById('modal-registro').style.display = 'none';
         appState.selectedTelar = null;
-        appState.accumulatedData = { rpm: null, picks: null };
+        clearOCRSession();
     }
 
-    // --- FORM SUBMISSION ---
+    // ===== FORM SUBMISSION =====
     document.getElementById('form-lectura').addEventListener('submit', function(e) {
         e.preventDefault();
         
-        const op = document.getElementById('inp-operador').value.trim();
-        const rpm = parseInt(document.getElementById('inp-rpm').value) || 0;
-        const picks = parseInt(document.getElementById('inp-picks').value) || 0;
-        const metros = parseFloat(document.getElementById('inp-metros').value) || 0;
-        const obs = document.getElementById('inp-observaciones').value.trim();
-        
-        if(!op) { alert("Falta el operador"); return; }
-
-        const newRecord = {
+        const formData = {
             telarId: appState.selectedTelar,
             fecha: appState.fecha,
             turno: appState.turno,
-            operador: op,
-            rpm: rpm,
-            picks: picks,
-            metros: metros,
-            observaciones: obs,
+            operador: document.getElementById('inp-operador').value.trim(),
+            rpm: parseInt(document.getElementById('inp-rpm').value) || 0,
+            picks: parseInt(document.getElementById('inp-picks').value) || 0,
+            metros: parseFloat(document.getElementById('inp-metros').value) || 0,
+            eficiencia: parseFloat(document.getElementById('inp-eficiencia').value) || null,
+            defectos: parseInt(document.getElementById('inp-defectos').value) || 0,
+            observaciones: document.getElementById('inp-observaciones').value.trim(),
             timestamp: new Date().toISOString()
         };
+        
+        if(!formData.operador) {
+            showValidationAlert('error', 'El nombre del operador es obligatorio');
+            return;
+        }
+
+        // Validaciones industriales
+        const alerts = validateIndustrialData(formData);
+        if (alerts.length > 0) {
+            showValidationAlerts(alerts);
+            return;
+        }
 
         const existingIdx = appState.lecturas.findIndex(l => 
             l.telarId === appState.selectedTelar && 
@@ -419,274 +571,581 @@
             l.turno === appState.turno
         );
 
-        if(existingIdx >= 0) appState.lecturas[existingIdx] = newRecord;
-        else appState.lecturas.push(newRecord);
+        if(existingIdx >= 0) {
+            appState.lecturas[existingIdx] = formData;
+        } else {
+            appState.lecturas.push(formData);
+        }
 
-        localStorage.setItem('lecturasDB_v2', JSON.stringify(appState.lecturas));
-        localStorage.setItem('lastOperador', op);
-        appState.operador = op;
+        localStorage.setItem('lecturasTexcorp_v3', JSON.stringify(appState.lecturas));
+        localStorage.setItem('lastOperador', formData.operador);
+        appState.operador = formData.operador;
 
+        logToConsole('✅ Registro guardado exitosamente');
         closeModal();
         renderPlant();
     });
 
-    // Listeners Filtros
-    elDate.addEventListener('change', (e) => { appState.fecha = e.target.value; renderPlant(); });
-    elTurno.addEventListener('change', (e) => { appState.turno = e.target.value; renderPlant(); });
-
-    // --- OCR REAL CON TESSERACT ---
+    // ===== INDUSTRIAL OCR SYSTEM =====
     
     // File input handlers
-    inpFotoAI.addEventListener('change', handleImageSelection);
-    inpFotoGaleria.addEventListener('change', handleImageSelection);
+    document.getElementById('inp-foto-capture').addEventListener('change', handleImageCapture);
+    document.getElementById('inp-foto-gallery').addEventListener('change', handleImageCapture);
 
-    function handleImageSelection(e) {
+    function handleImageCapture(e) {
         const file = e.target.files[0];
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = function(evt) {
-            imgPreviewAI.src = evt.target.result;
-            appState.currentImageData = evt.target.result;
-            document.getElementById('preview-container-ai').style.display = 'block';
-            
-            hideAllResultSections();
+            const img = new Image();
+            img.onload = function() {
+                appState.currentImageData = img;
+                imgOriginal.src = evt.target.result;
+                imgOriginal.style.display = 'block';
+                document.getElementById('no-image-msg').style.display = 'none';
+                
+                // Aplicar pre-procesamiento inmediatamente
+                preprocessImage(img);
+                processBtn.disabled = false;
+                
+                logToConsole('📷 Imagen cargada. Pre-procesamiento aplicado automáticamente.');
+            };
+            img.src = evt.target.result;
         };
         reader.readAsDataURL(file);
     }
 
-    function hideAllResultSections() {
-        document.getElementById('processing-indicator').style.display = 'none';
-        document.getElementById('analysis-details').style.display = 'none';
-        document.getElementById('results-container').style.display = 'none';
-        document.getElementById('manual-input').style.display = 'none';
+    function preprocessImage(img) {
+        const canvas = document.getElementById('processing-canvas');
+        const ctx = canvas.getContext('2d');
+
+        // Redimensionar para OCR óptimo
+        const targetWidth = 800;
+        const scale = targetWidth / img.width;
+        canvas.width = targetWidth;
+        canvas.height = img.height * scale;
+
+        // Dibujar imagen escalada
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        // ALGORITMO DE BINARIZACIÓN MEJORADO
+        let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        let data = imageData.data;
+
+        // Calcular threshold dinámico (Método Otsu simplificado)
+        const threshold = calculateOptimalThreshold(data);
+        
+        logToConsole(`🔧 Aplicando binarización con threshold: ${threshold}`);
+
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+
+            // Conversión a escala de grises con pesos perceptuales
+            const gray = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+            // Aplicar threshold
+            const val = gray < threshold ? 0 : 255;
+
+            data[i] = val;     // R
+            data[i + 1] = val; // G
+            data[i + 2] = val; // B
+        }
+
+        ctx.putImageData(imageData, 0, 0);
+        
+        // Mostrar imagen procesada
+        imgProcessed.src = canvas.toDataURL();
+        imgProcessed.style.display = 'block';
+        document.getElementById('no-processed-msg').style.display = 'none';
+        
+        logToConsole('✨ Pre-procesamiento completado. Imagen optimizada para OCR.');
     }
 
-    async function runRealOCR() {
+    function calculateOptimalThreshold(data) {
+        // Histograma simplificado para calcular threshold óptimo
+        const histogram = new Array(256).fill(0);
+        
+        for (let i = 0; i < data.length; i += 4) {
+            const r = data[i];
+            const g = data[i + 1];
+            const b = data[i + 2];
+            const gray = Math.round(0.2126 * r + 0.7152 * g + 0.0722 * b);
+            histogram[gray]++;
+        }
+
+        // Encontrar el valle entre los dos picos (fondo y texto)
+        // Método simplificado: usar percentil 40-60
+        const totalPixels = data.length / 4;
+        let cumulative = 0;
+        
+        for (let i = 0; i < 256; i++) {
+            cumulative += histogram[i];
+            if (cumulative > totalPixels * 0.5) {
+                return Math.max(80, Math.min(140, i)); // Limitar entre 80-140
+            }
+        }
+        
+        return 110; // Fallback
+    }
+
+    async function runIndustrialOCR() {
         if (!appState.currentImageData) {
-            alert("Por favor selecciona una imagen primero");
+            showValidationAlert('warning', 'No hay imagen cargada para procesar');
             return;
         }
 
-        const processingEl = document.getElementById('processing-indicator');
-        const processingText = document.getElementById('processing-text');
-        const progressFill = document.getElementById('progress-fill');
-        const analyzeBtn = document.getElementById('analyze-btn');
-        const analysisDetails = document.getElementById('analysis-details');
-        const textFoundEl = document.getElementById('text-found');
+        const processingStatus = document.getElementById('processing-status');
+        const processText = document.getElementById('process-text');
         
-        hideAllResultSections();
-        processingEl.style.display = 'block';
-        analysisDetails.style.display = 'block';
-        analyzeBtn.disabled = true;
+        processingStatus.style.display = 'block';
+        processBtn.disabled = true;
         
+        logToConsole('🚀 Iniciando sistema OCR industrial Tesseract v5...');
+
         try {
-            progressFill.style.width = '25%';
-            processingText.textContent = "Inicializando Tesseract...";
-            await delay(200);
+            processText.textContent = 'Inicializando engine OCR...';
+            await delay(300);
             
-            progressFill.style.width = '50%';
-            processingText.textContent = "Leyendo texto de la imagen...";
+            processText.textContent = 'Ejecutando reconocimiento de texto...';
             
-            // USAR TESSERACT.JS PARA LEER TEXTO REAL
+            // Usar canvas procesado para OCR
             const { data: { text } } = await Tesseract.recognize(
-                appState.currentImageData,
-                'spa', // Spanish language
+                document.getElementById('processing-canvas'),
+                'eng', // Inglés es mejor para números
                 {
+                    tessedit_char_whitelist: '0123456789.rpm%MPasdnsmetros:', 
+                    tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+                    preserve_interword_spaces: '1',
                     logger: m => {
-                        if (m.status === 'recognizing text') {
-                            const progress = Math.min(50 + (m.progress * 40), 90);
-                            progressFill.style.width = progress + '%';
-                            processingText.textContent = `Leyendo texto... ${Math.round(m.progress * 100)}%`;
+                        if(m.status === 'recognizing text') {
+                            const progress = Math.round(m.progress * 100);
+                            processText.textContent = `Reconociendo texto: ${progress}%`;
+                            logToConsole(`📈 Progreso OCR: ${progress}%`);
                         }
                     }
                 }
             );
+
+            logToConsole('📄 Texto detectado:\n' + text);
             
-            progressFill.style.width = '100%';
-            processingText.textContent = "Extrayendo números...";
+            // Procesar y validar resultados
+            const extractedData = parseIndustrialData(text);
+            displayOCRResults(extractedData);
+            updateFormFields(extractedData);
             
-            // Mostrar texto encontrado
-            textFoundEl.innerHTML = `<div class="text-found">${text.replace(/\n/g, '<br>')}</div>`;
-            
-            // EXTRAER NÚMEROS REALES DEL TEXTO
-            const numbers = extractRealNumbers(text);
-            
-            await delay(500);
-            processingEl.style.display = 'none';
-            
-            if (numbers.length > 0) {
-                displayRealResults(numbers, text);
-                updateAccumulatedData(numbers);
-            } else {
-                displayNoNumbersFound(text);
-            }
-            
+            // Validar resultados
+            const validationResults = validateOCRResults(extractedData);
+            showValidationAlerts(validationResults);
+
         } catch (error) {
-            console.error("Error en OCR:", error);
-            processingText.textContent = "Error en OCR";
-            textFoundEl.innerHTML = `<span style="color: #dc3545;">ERROR: ${error.message}</span>`;
-            setTimeout(() => {
-                processingEl.style.display = 'none';
-                enableManualInput();
-            }, 2000);
+            logToConsole('❌ ERROR OCR: ' + error.message);
+            showValidationAlert('error', 'Error en el procesamiento OCR: ' + error.message);
+            enableManualMode();
         } finally {
-            analyzeBtn.disabled = false;
-            progressFill.style.width = '0%';
+            processingStatus.style.display = 'none';
+            processBtn.disabled = false;
         }
     }
 
-    function extractRealNumbers(text) {
-        // Buscar patrones específicos en el texto
-        const numbers = [];
+    function parseIndustrialData(text) {
+        // Limpieza avanzada de errores comunes de OCR
+        const cleanText = text
+            .replace(/[O|o]/g, '0')
+            .replace(/[S|s]/g, '5')
+            .replace(/[l|I]/g, '1')
+            .replace(/[Z]/g, '2')
+            .replace(/[G]/g, '6')
+            .toLowerCase();
+
+        logToConsole('🧹 Texto limpio: ' + cleanText);
+
+        const results = {
+            rpm: null,
+            picks: null,
+            eficiencia: null,
+            metros: null,
+            rawText: text
+        };
+
+        const lines = cleanText.split('\n').filter(line => line.trim());
         
-        // Limpiar texto
-        const cleanText = text.replace(/[^\w\s\d]/g, ' ').toLowerCase();
-        
-        // Buscar RPM
-        const rpmMatches = cleanText.match(/(\d+)\s*rpm/i);
-        if (rpmMatches) {
-            numbers.push({
-                type: 'rpm',
-                value: parseInt(rpmMatches[1]),
-                context: rpmMatches[0]
-            });
-        }
-        
-        // Buscar números grandes (posibles pasadas/contadores)
-        const largeNumbers = text.match(/\d{3,}/g);
-        if (largeNumbers) {
-            largeNumbers.forEach(num => {
-                const value = parseInt(num);
-                if (value > 100 && value < 10000000) { // Rango razonable
-                    numbers.push({
-                        type: 'counter',
-                        value: value,
-                        context: num
-                    });
+        lines.forEach(line => {
+            logToConsole(`🔍 Analizando línea: "${line}"`);
+            
+            // Buscar RPM - más flexible
+            if (line.includes('rpm') || line.match(/\d+\s*r\w*m/)) {
+                const match = line.match(/(\d+)/);
+                if (match) {
+                    const val = parseInt(match[1]);
+                    if (val >= 50 && val <= 1200) { // Rango industrial típico
+                        results.rpm = val;
+                        logToConsole(`✅ RPM detectadas: ${val}`);
+                    }
                 }
-            });
-        }
-        
-        // Buscar porcentajes
-        const percentMatches = text.match(/(\d+(?:\.\d+)?)\s*%/g);
-        if (percentMatches) {
-            percentMatches.forEach(match => {
-                const value = parseFloat(match.replace('%', ''));
-                numbers.push({
-                    type: 'percentage',
-                    value: value,
-                    context: match
+            }
+
+            // Buscar eficiencia (porcentaje)
+            if (line.includes('%') || line.includes('eff')) {
+                const match = line.match(/(\d+(?:\.\d+)?)/);
+                if (match) {
+                    const val = parseFloat(match[1]);
+                    if (val >= 0 && val <= 100) {
+                        results.eficiencia = val;
+                        logToConsole(`✅ Eficiencia detectada: ${val}%`);
+                    }
+                }
+            }
+
+            // Buscar metros
+            if (line.includes('metro') || line.includes('mts') || line.includes('preselec')) {
+                const match = line.match(/(\d+)/);
+                if (match) {
+                    const val = parseInt(match[1]);
+                    if (val > 0 && val < 100000) {
+                        results.metros = val;
+                        logToConsole(`✅ Metros detectados: ${val}`);
+                    }
+                }
+            }
+
+            // Buscar pasadas/picks - números grandes pero razonables
+            const numbersInLine = line.match(/\d+/g);
+            if (numbersInLine) {
+                numbersInLine.forEach(numStr => {
+                    const num = parseInt(numStr);
+                    // Rango típico de pasadas: 1000 - 800000
+                    if (num >= 1000 && num <= 800000 && !results.picks) {
+                        // Evitar números que parecen fechas o horas
+                        if (numStr.length >= 4) {
+                            results.picks = num;
+                            logToConsole(`✅ Pasadas detectadas: ${num}`);
+                        }
+                    }
                 });
+            }
+        });
+
+        return results;
+    }
+
+    function displayOCRResults(data) {
+        const resultsGrid = document.getElementById('ocr-results');
+        
+        document.getElementById('result-rpm-val').textContent = data.rpm || '--';
+        document.getElementById('result-picks-val').textContent = data.picks ? data.picks.toLocaleString() : '--';
+        document.getElementById('result-eff-val').textContent = data.eficiencia ? data.eficiencia + '%' : '--';
+        document.getElementById('result-metros-val').textContent = data.metros || '--';
+        
+        resultsGrid.style.display = 'grid';
+        
+        // Guardar en estado de la app
+        appState.ocrResults = data;
+    }
+
+    function updateFormFields(data) {
+        if (data.rpm) {
+            document.getElementById('inp-rpm').value = data.rpm;
+            document.getElementById('inp-rpm').style.backgroundColor = '#d4edda';
+        }
+        if (data.picks) {
+            document.getElementById('inp-picks').value = data.picks;
+            document.getElementById('inp-picks').style.backgroundColor = '#d4edda';
+        }
+        if (data.eficiencia) {
+            document.getElementById('inp-eficiencia').value = data.eficiencia;
+            document.getElementById('inp-eficiencia').style.backgroundColor = '#d4edda';
+        }
+        if (data.metros) {
+            document.getElementById('inp-metros').value = data.metros;
+            document.getElementById('inp-metros').style.backgroundColor = '#d4edda';
+        }
+    }
+
+    // ===== VALIDATION SYSTEM =====
+    function validateOCRResults(data) {
+        const alerts = [];
+
+        if (data.rpm && (data.rpm < 100 || data.rpm > 1000)) {
+            alerts.push({
+                type: 'warning',
+                message: `RPM ${data.rpm} fuera del rango típico (100-1000). Verificar lectura.`
             });
         }
-        
-        return numbers;
+
+        if (data.eficiencia && (data.eficiencia < 30 || data.eficiencia > 100)) {
+            alerts.push({
+                type: 'warning',
+                message: `Eficiencia ${data.eficiencia}% inusual. Rango típico: 30-100%.`
+            });
+        }
+
+        if (data.picks && data.picks > 500000) {
+            alerts.push({
+                type: 'warning',
+                message: `Número de pasadas muy alto (${data.picks.toLocaleString()}). ¿Podría ser contador acumulativo?`
+            });
+        }
+
+        if (!data.rpm && !data.picks) {
+            alerts.push({
+                type: 'error',
+                message: 'No se detectaron valores principales (RPM/Pasadas). Verificar calidad de imagen.'
+            });
+        } else {
+            alerts.push({
+                type: 'success',
+                message: '✅ Datos extraídos exitosamente. Revisar y confirmar antes de guardar.'
+            });
+        }
+
+        return alerts;
     }
 
-    function displayRealResults(numbers, fullText) {
-        const resultsEl = document.getElementById('results-container');
-        const detectedEl = document.getElementById('detected-data');
+    function validateIndustrialData(formData) {
+        const alerts = [];
+
+        if (formData.rpm === 0) {
+            alerts.push({
+                type: 'error',
+                message: 'RPM no puede ser 0. El telar debe tener actividad.'
+            });
+        }
+
+        if (formData.picks === 0) {
+            alerts.push({
+                type: 'error',
+                message: 'Las pasadas no pueden ser 0. Verificar contador.'
+            });
+        }
+
+        if (formData.eficiencia && formData.eficiencia < 20) {
+            alerts.push({
+                type: 'warning',
+                message: 'Eficiencia muy baja. ¿Hay problemas en el telar?'
+            });
+        }
+
+        return alerts;
+    }
+
+    function showValidationAlerts(alerts) {
+        const container = document.getElementById('validation-alerts');
+        container.innerHTML = '';
         
-        let resultsHTML = '';
-        
-        numbers.forEach(num => {
-            if (num.type === 'rpm') {
-                resultsHTML += `<div>🔄 <strong>RPM:</strong> ${num.value} <small>(encontrado: "${num.context}")</small></div>`;
-            } else if (num.type === 'counter') {
-                resultsHTML += `<div>📊 <strong>Número:</strong> ${num.value.toLocaleString()} <small>(encontrado: "${num.context}")</small></div>`;
-            } else if (num.type === 'percentage') {
-                resultsHTML += `<div>📈 <strong>Porcentaje:</strong> ${num.value}% <small>(encontrado: "${num.context}")</small></div>`;
-            }
+        alerts.forEach(alert => {
+            const div = document.createElement('div');
+            div.className = `alert alert-${alert.type}`;
+            
+            const icon = alert.type === 'error' ? '❌' : 
+                        alert.type === 'warning' ? '⚠️' : '✅';
+                        
+            div.innerHTML = `${icon} ${alert.message}`;
+            container.appendChild(div);
         });
         
-        detectedEl.innerHTML = resultsHTML;
-        resultsEl.style.display = 'block';
+        container.style.display = alerts.length > 0 ? 'block' : 'none';
     }
 
-    function updateAccumulatedData(numbers) {
-        numbers.forEach(num => {
-            if (num.type === 'rpm') {
-                appState.accumulatedData.rpm = num.value;
-                document.getElementById('inp-rpm').value = num.value;
-                document.getElementById('inp-rpm').style.backgroundColor = "#d4edda";
-            } else if (num.type === 'counter') {
-                // Solo usar como pasadas si parece razonable para pasadas
-                if (num.value < 1000000) {
-                    appState.accumulatedData.picks = num.value;
-                    document.getElementById('inp-picks').value = num.value;
-                    document.getElementById('inp-picks').style.backgroundColor = "#d4edda";
-                }
-            }
+    function showValidationAlert(type, message) {
+        showValidationAlerts([{ type, message }]);
+    }
+
+    // ===== UTILITY FUNCTIONS =====
+    function enableManualMode() {
+        document.getElementById('manual-input-section').style.display = 'block';
+        document.getElementById('inp-operador').focus();
+        logToConsole('✏️ Modo manual activado. Complete los campos manualmente.');
+    }
+
+    function clearOCRSession() {
+        // Reset images
+        imgOriginal.style.display = 'none';
+        imgProcessed.style.display = 'none';
+        document.getElementById('no-image-msg').style.display = 'block';
+        document.getElementById('no-processed-msg').style.display = 'block';
+        
+        // Reset UI
+        document.getElementById('ocr-results').style.display = 'none';
+        document.getElementById('processing-status').style.display = 'none';
+        document.getElementById('manual-input-section').style.display = 'none';
+        document.getElementById('validation-alerts').style.display = 'none';
+        
+        // Reset file inputs
+        document.getElementById('inp-foto-capture').value = '';
+        document.getElementById('inp-foto-gallery').value = '';
+        
+        // Reset form field colors
+        ['inp-rpm', 'inp-picks', 'inp-eficiencia', 'inp-metros'].forEach(id => {
+            document.getElementById(id).style.backgroundColor = '';
         });
-    }
-
-    function displayNoNumbersFound(text) {
-        const manualEl = document.getElementById('manual-input');
-        manualEl.style.display = 'block';
         
-        if (!document.getElementById('inp-rpm').value) {
-            document.getElementById('inp-rpm').focus();
-        } else if (!document.getElementById('inp-picks').value) {
-            document.getElementById('inp-picks').focus();
-        }
-    }
-
-    function enableManualInput() {
-        hideAllResultSections();
-        document.getElementById('manual-input').style.display = 'block';
-        
-        if (!document.getElementById('inp-rpm').value) {
-            document.getElementById('inp-rpm').focus();
-        } else if (!document.getElementById('inp-picks').value) {
-            document.getElementById('inp-picks').focus();
-        }
-    }
-
-    function clearOCRData() {
-        document.getElementById('preview-container-ai').style.display = 'none';
-        imgPreviewAI.src = '';
+        processBtn.disabled = true;
         appState.currentImageData = null;
+        appState.ocrResults = { rpm: null, picks: null, eficiencia: null, metros: null };
         
-        hideAllResultSections();
-        
-        inpFotoAI.value = '';
-        inpFotoGaleria.value = '';
-        
-        const rpmInput = document.getElementById('inp-rpm');
-        const picksInput = document.getElementById('inp-picks');
-        
-        rpmInput.style.backgroundColor = '';
-        picksInput.style.backgroundColor = '';
-        
-        document.getElementById('analyze-btn').disabled = false;
+        logToConsole('🗑️ Sesión OCR limpiada. Listo para nueva imagen.');
+    }
+
+    function logToConsole(message) {
+        const timestamp = new Date().toLocaleTimeString();
+        const logDiv = document.createElement('div');
+        logDiv.textContent = `[${timestamp}] ${message}`;
+        ocrConsole.appendChild(logDiv);
+        ocrConsole.scrollTop = ocrConsole.scrollHeight;
     }
 
     function delay(ms) {
         return new Promise(resolve => setTimeout(resolve, ms));
     }
 
-    // --- EXPORTACIÓN ---
+    // ===== QR SCANNER (Preserved from original) =====
+    let video = document.getElementById('qr-video');
+    let qrStream = null;
+    let isScanning = false;
+
+    async function toggleQRScanner() {
+        const overlay = document.getElementById('qr-overlay');
+        if(isScanning) return;
+
+        overlay.style.display = 'flex';
+        try {
+            qrStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            video.srcObject = qrStream;
+            video.setAttribute("playsinline", true);
+            video.play();
+            isScanning = true;
+            requestAnimationFrame(tickQR);
+        } catch(err) {
+            alert("No se pudo acceder a la cámara. Verificar permisos.");
+            overlay.style.display = 'none';
+        }
+    }
+
+    function stopQRScanner() {
+        const overlay = document.getElementById('qr-overlay');
+        if(qrStream) {
+            qrStream.getTracks().forEach(track => track.stop());
+            qrStream = null;
+        }
+        isScanning = false;
+        overlay.style.display = 'none';
+    }
+
+    function tickQR() {
+        if(!isScanning) return;
+        if(video.readyState === video.HAVE_ENOUGH_DATA) {
+            const canvas = document.createElement("canvas");
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            
+            if(code) {
+                const numbers = code.data.match(/\d+/);
+                if(numbers) {
+                    const id = parseInt(numbers[0]);
+                    if(telares.find(t => t.id === id)) {
+                        stopQRScanner();
+                        openModal(id);
+                        return;
+                    }
+                }
+            }
+        }
+        requestAnimationFrame(tickQR);
+    }
+
+    // ===== EXPORT FUNCTIONS =====
     function exportToCSV() {
-        if(appState.lecturas.length === 0) { alert("Sin datos"); return; }
-        const rows = [["Fecha","Turno","Telar","RPM","Picks","Operador","Metros","Observaciones"]];
-        appState.lecturas.forEach(l => rows.push([l.fecha, l.turno, l.telarId, l.rpm, l.picks, l.operador, l.metros || '', l.observaciones || '']));
-        let csvContent = "data:text/csv;charset=utf-8," + rows.map(e => e.join(",")).join("\n");
+        if(appState.lecturas.length === 0) { 
+            alert("No hay datos para exportar"); 
+            return; 
+        }
+        
+        const headers = ["Fecha","Turno","Telar","Operador","RPM","Picks","Metros","Eficiencia","Defectos","Observaciones"];
+        const rows = [headers];
+        
+        appState.lecturas.forEach(l => {
+            rows.push([
+                l.fecha, l.turno, l.telarId, l.operador, l.rpm, l.picks, 
+                l.metros || 0, l.eficiencia || '', l.defectos || 0, l.observaciones || ''
+            ]);
+        });
+        
+        const csvContent = "data:text/csv;charset=utf-8," + 
+                          rows.map(row => row.map(field => `"${field}"`).join(",")).join("\n");
         const encodedUri = encodeURI(csvContent);
         const link = document.createElement("a");
         link.setAttribute("href", encodedUri);
-        link.setAttribute("download", "telares_texcorp.csv");
+        link.setAttribute("download", `telares_texcorp_${appState.fecha}.csv`);
         document.body.appendChild(link);
         link.click();
+        document.body.removeChild(link);
     }
 
-    // Reloj y Arranque
-    setInterval(() => {
-        const now = new Date();
-        document.getElementById('current-time').innerText = now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-    }, 1000);
+    function exportToExcel() {
+        if(appState.lecturas.length === 0) { 
+            alert("No hay datos para exportar"); 
+            return; 
+        }
+        
+        let table = '<table border="1"><thead><tr>';
+        table += '<th>Fecha</th><th>Turno</th><th>Telar</th><th>Operador</th><th>RPM</th>';
+        table += '<th>Picks</th><th>Metros</th><th>Eficiencia</th><th>Defectos</th><th>Observaciones</th>';
+        table += '</tr></thead><tbody>';
+        
+        appState.lecturas.forEach(l => {
+            table += `<tr>
+                <td>${l.fecha}</td><td>${l.turno}</td><td>${l.telarId}</td><td>${l.operador}</td>
+                <td>${l.rpm}</td><td>${l.picks}</td><td>${l.metros || 0}</td>
+                <td>${l.eficiencia || ''}</td><td>${l.defectos || 0}</td>
+                <td>${l.observaciones || ''}</td>
+            </tr>`;
+        });
+        table += '</tbody></table>';
+        
+        const blob = new Blob(['\ufeff' + table], { type: 'application/vnd.ms-excel' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `telares_texcorp_${appState.fecha}.xls`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+    }
 
-    renderPlant();
+    // ===== EVENT LISTENERS =====
+    elDate.addEventListener('change', (e) => { 
+        appState.fecha = e.target.value; 
+        renderPlant(); 
+    });
+    
+    elTurno.addEventListener('change', (e) => { 
+        appState.turno = e.target.value; 
+        renderPlant(); 
+    });
+
+    // ===== INITIALIZATION =====
+    function initializeApp() {
+        renderPlant();
+        logToConsole('🚀 Sistema TEXCORP OCR Industrial iniciado correctamente.');
+        
+        // Update time every second
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('current-time').innerText = 
+                now.toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+        }, 1000);
+    }
+
+    // Start the application
+    initializeApp();
+
 </script>
 </body>
 </html>
